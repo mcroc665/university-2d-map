@@ -15,6 +15,7 @@
             font-family: Arial, sans-serif;
             background: #f5f5f5;
             padding: 20px;
+            overflow: hidden;
         }
 
         .container {
@@ -36,28 +37,27 @@
             position: relative;
             border: 2px solid #ddd;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: auto;
             background: white;
+            max-height: 80vh;
         }
 
         #university-map {
-            width: 100%;
-            height: auto;
             display: block;
+            margin: 0 auto;
             transition: transform 0.3s ease;
         }
 
+        /* Стили для будущей интерактивности */
         .building {
             cursor: pointer;
             transition: all 0.3s ease;
-            stroke: transparent;
-            stroke-width: 2;
         }
 
         .building:hover {
+            filter: brightness(1.2);
             stroke: #ff5722;
-            filter: brightness(1.1);
-            transform: scale(1.02);
+            stroke-width: 2;
         }
 
         .controls {
@@ -81,51 +81,6 @@
         button:hover {
             background: #357ABD;
         }
-
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .popup h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .popup p {
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .popup-close {
-            background: #ff5722;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
     </style>
 </head>
 <body>
@@ -139,34 +94,88 @@
         </div>
 
         <div class="map-container">
-            <!-- ВСТАВЬТЕ СОДЕРЖИМОЕ ВАШЕГО SVG ФАЙЛА СЮДА -->
-            <svg id="university-map" viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
-                <!-- ПРИМЕР - ЗАМЕНИТЕ НА ВАШУ SVG КАРТУ -->
-                <rect id="main_building" class="building" x="100" y="150" width="200" height="80" fill="#4A90E2" 
-                      data-name="Главный корпус" 
-                      data-description="Основное здание университета. Здесь находятся ректорат и главные аудитории."/>
+            <svg id="university-map" width="2000" height="2000" viewBox="0 0 2000 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="2000" height="2000" fill="white"/>
                 
-                <polygon id="library" class="building" points="350,200 400,180 450,220 380,250" fill="#E24A4A"
-                      data-name="Библиотека" 
-                      data-description="Научная библиотека с фондом более 1 млн книг. Работает с 9:00 до 21:00."/>
-                
-                <rect id="dormitory_1" class="building" x="500" y="300" width="120" height="60" fill="#90E24A"
-                      data-name="Общежитие №1" 
-                      data-description="Студенческое общежитие на 500 мест. Для студентов 1-2 курсов."/>
-                
-                <!-- Добавьте остальные здания здесь -->
+                <!-- Добавляем класс building ко всем элементам для будущей интерактивности -->
+                <path class="building" d="M442 1869H569.276V1848H644.394V1869H837.197V1848H911.063V1869H1030V1930H515.927H442V1869Z" fill="#D9D9D9"/>
+                <path class="building" d="M442 1735H574V1531.5H655V1679.5H671.5V1631H803V1679.5H821V1531.5H908.729V1735H941V1606H994.5V1735H1030V1818H908.729V1803.64H555.428V1818H442V1803.64V1735Z" fill="#D9D9D9"/>
+                <rect class="building" x="620" y="1802" width="14" height="46" fill="#D9D9D9"/>
+                <path class="building" d="M377.5 1094H462.5V1392.5H709.5V1498.5H462.5V1535H492.5V1642H433.5V1629H354V1503.5H377.5V1094Z" fill="#D9D9D9"/>
+                <rect class="building" x="556" y="1074" width="78" height="225" fill="#D9D9D9"/>
+                <path class="building" d="M642 1092.5H700V1085H789V1121H735V1297.5H668.5V1182.5H642V1092.5Z" fill="#D9D9D9"/>
+                <rect class="building" x="604" y="1498" width="16" height="34" fill="#D9D9D9"/>
+                <rect class="building" x="510" y="1538" width="46" height="137" fill="#D9D9D9"/>
+                <rect class="building" x="762" y="1129" width="75" height="223" fill="#D9D9D9"/>
+                <rect class="building" x="557" y="750" width="109" height="268" fill="#D9D9D9"/>
+                <rect class="building" x="723" y="836" width="133" height="203" fill="#D9D9D9"/>
+                <rect class="building" x="754" y="1398" width="35" height="100" fill="#D9D9D9"/>
+                <rect class="building" x="811" y="1431" width="58" height="67" fill="#D9D9D9"/>
+                <rect class="building" x="326" y="919" width="159" height="85" fill="#D9D9D9"/>
+                <rect class="building" x="354" y="634" width="112" height="285" fill="#D9D9D9"/>
+                <rect class="building" x="502" y="637" width="31" height="49" fill="#D9D9D9"/>
+                <rect class="building" x="503" y="711" width="30" height="249" fill="#D9D9D9"/>
+                <rect class="building" x="590" y="668" width="52" height="32" fill="#D9D9D9"/>
+                <rect class="building" x="1093" y="1531" width="81" height="144" fill="#D9D9D9"/>
+                <path class="building" d="M990 1630L1097 1596V1606L990 1641V1630Z" fill="#D9D9D9"/>
+                <path class="building" d="M937 668H1056V902H951.7V753.136H937V668Z" fill="#D9D9D9"/>
             </svg>
         </div>
     </div>
 
-    <!-- Всплывающее окно -->
-    <div class="popup-overlay" id="popupOverlay"></div>
-    <div class="popup" id="buildingPopup">
-        <h3 id="popupTitle">Название здания</h3>
-        <p id="popupDescription">Описание здания появится здесь</p>
-        <button class="popup-close" onclick="closePopup()">Закрыть</button>
-    </div>
+    <script>
+        // Переменные для масштабирования
+        let currentScale = 1;
+        const minScale = 0.3;
+        const maxScale = 3;
+        const scaleStep = 0.2;
 
-    <script src="main.js"></script>
+        function zoomIn() {
+            if (currentScale < maxScale) {
+                currentScale += scaleStep;
+                updateScale();
+            }
+        }
+
+        function zoomOut() {
+            if (currentScale > minScale) {
+                currentScale -= scaleStep;
+                updateScale();
+            }
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            updateScale();
+        }
+
+        function updateScale() {
+            const map = document.getElementById('university-map');
+            map.style.transform = `scale(${currentScale})`;
+        }
+
+        // Добавляем обработчики для зданий (пока просто для демонстрации)
+        document.addEventListener('DOMContentLoaded', function() {
+            const buildings = document.querySelectorAll('.building');
+            
+            buildings.forEach((building, index) => {
+                building.addEventListener('click', function() {
+                    alert(`Кликнули на здание ${index + 1}`);
+                    // Здесь позже будет открытие попапа с информацией
+                });
+            });
+
+            // Масштабирование колесиком мыши
+            const mapContainer = document.querySelector('.map-container');
+            mapContainer.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
