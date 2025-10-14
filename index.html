@@ -4,84 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Интерактивная карта университета</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            overflow: hidden;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .map-container {
-            position: relative;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            overflow: auto;
-            background: white;
-            max-height: 80vh;
-        }
-
-        #university-map {
-            display: block;
-            margin: 0 auto;
-            transition: transform 0.3s ease;
-        }
-
-        /* Стили для будущей интерактивности */
-        .building {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .building:hover {
-            filter: brightness(1.2);
-            stroke: #ff5722;
-            stroke-width: 2;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            background: #4A90E2;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #357ABD;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -94,88 +17,61 @@
         </div>
 
         <div class="map-container">
-            <svg id="university-map" width="2000" height="2000" viewBox="0 0 2000 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="2000" height="2000" fill="white"/>
-                
-                <!-- Добавляем класс building ко всем элементам для будущей интерактивности -->
-                <path class="building" d="M442 1869H569.276V1848H644.394V1869H837.197V1848H911.063V1869H1030V1930H515.927H442V1869Z" fill="#D9D9D9"/>
-                <path class="building" d="M442 1735H574V1531.5H655V1679.5H671.5V1631H803V1679.5H821V1531.5H908.729V1735H941V1606H994.5V1735H1030V1818H908.729V1803.64H555.428V1818H442V1803.64V1735Z" fill="#D9D9D9"/>
-                <rect class="building" x="620" y="1802" width="14" height="46" fill="#D9D9D9"/>
-                <path class="building" d="M377.5 1094H462.5V1392.5H709.5V1498.5H462.5V1535H492.5V1642H433.5V1629H354V1503.5H377.5V1094Z" fill="#D9D9D9"/>
-                <rect class="building" x="556" y="1074" width="78" height="225" fill="#D9D9D9"/>
-                <path class="building" d="M642 1092.5H700V1085H789V1121H735V1297.5H668.5V1182.5H642V1092.5Z" fill="#D9D9D9"/>
-                <rect class="building" x="604" y="1498" width="16" height="34" fill="#D9D9D9"/>
-                <rect class="building" x="510" y="1538" width="46" height="137" fill="#D9D9D9"/>
-                <rect class="building" x="762" y="1129" width="75" height="223" fill="#D9D9D9"/>
-                <rect class="building" x="557" y="750" width="109" height="268" fill="#D9D9D9"/>
-                <rect class="building" x="723" y="836" width="133" height="203" fill="#D9D9D9"/>
-                <rect class="building" x="754" y="1398" width="35" height="100" fill="#D9D9D9"/>
-                <rect class="building" x="811" y="1431" width="58" height="67" fill="#D9D9D9"/>
-                <rect class="building" x="326" y="919" width="159" height="85" fill="#D9D9D9"/>
-                <rect class="building" x="354" y="634" width="112" height="285" fill="#D9D9D9"/>
-                <rect class="building" x="502" y="637" width="31" height="49" fill="#D9D9D9"/>
-                <rect class="building" x="503" y="711" width="30" height="249" fill="#D9D9D9"/>
-                <rect class="building" x="590" y="668" width="52" height="32" fill="#D9D9D9"/>
-                <rect class="building" x="1093" y="1531" width="81" height="144" fill="#D9D9D9"/>
-                <path class="building" d="M990 1630L1097 1596V1606L990 1641V1630Z" fill="#D9D9D9"/>
-                <path class="building" d="M937 668H1056V902H951.7V753.136H937V668Z" fill="#D9D9D9"/>
+            <svg id="university-map" width="100" height="100" viewBox="0 0 2000 2000" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Добавляем ID каждому зданию для интерактивности -->
+                <path id="building_1" class="building" d="M442 1869H569.276V1848H644.394V1869H837.197V1848H911.063V1869H1030V1930H515.927H442V1869Z" fill="#D9D9D9"/>
+                <path id="building_2" class="building" d="M442 1735H574V1531.5H655V1679.5H671.5V1631H803V1679.5H821V1531.5H908.729V1735H941V1606H994.5V1735H1030V1818H908.729V1803.64H555.428V1818H442V1803.64V1735Z" fill="#D9D9D9"/>
+                <rect id="building_3" class="building" x="620" y="1802" width="14" height="46" fill="#D9D9D9"/>
+                <path id="building_4" class="building" d="M377.5 1094H462.5V1392.5H709.5V1498.5H462.5V1535H492.5V1642H433.5V1629H354V1503.5H377.5V1094Z" fill="#D9D9D9"/>
+                <rect id="building_5" class="building" x="556" y="1074" width="78" height="225" fill="#D9D9D9"/>
+                <path id="building_6" class="building" d="M642 1092.5H700V1085H789V1121H735V1297.5H668.5V1182.5H642V1092.5Z" fill="#D9D9D9"/>
+                <rect id="building_7" class="building" x="604" y="1498" width="16" height="34" fill="#D9D9D9"/>
+                <rect id="building_8" class="building" x="510" y="1538" width="46" height="137" fill="#D9D9D9"/>
+                <rect id="building_9" class="building" x="762" y="1129" width="75" height="223" fill="#D9D9D9"/>
+                <rect id="building_10" class="building" x="557" y="750" width="109" height="268" fill="#D9D9D9"/>
+                <rect id="building_11" class="building" x="723" y="836" width="133" height="203" fill="#D9D9D9"/>
+                <rect id="building_12" class="building" x="754" y="1398" width="35" height="100" fill="#D9D9D9"/>
+                <rect id="building_13" class="building" x="811" y="1431" width="58" height="67" fill="#D9D9D9"/>
+                <rect id="building_14" class="building" x="326" y="919" width="159" height="85" fill="#D9D9D9"/>
+                <rect id="building_15" class="building" x="354" y="634" width="112" height="285" fill="#D9D9D9"/>
+                <rect id="building_16" class="building" x="502" y="637" width="31" height="49" fill="#D9D9D9"/>
+                <rect id="building_17" class="building" x="503" y="711" width="30" height="249" fill="#D9D9D9"/>
+                <rect id="building_18" class="building" x="590" y="668" width="52" height="32" fill="#D9D9D9"/>
+                <rect id="building_19" class="building" x="1093" y="1531" width="81" height="144" fill="#D9D9D9"/>
+                <path id="building_20" class="building" d="M990 1630L1097 1596V1606L990 1641V1630Z" fill="#D9D9D9"/>
+                <path id="building_21" class="building" d="M937 668H1056V902H951.7V753.136H937V668Z" fill="#D9D9D9"/>
             </svg>
         </div>
     </div>
 
-    <script>
-        // Переменные для масштабирования
-        let currentScale = 1;
-        const minScale = 0.3;
-        const maxScale = 3;
-        const scaleStep = 0.2;
+    <!-- Модальное окно выбора этажа -->
+    <div class="modal-overlay" id="floorModal">
+        <div class="modal">
+            <h3 id="modalBuildingName">Выбор этажа</h3>
+            <div class="floors-container" id="floorsContainer">
+                <!-- Этажи будут генерироваться через JS -->
+            </div>
+            <button class="close-btn" onclick="closeFloorModal()">Закрыть</button>
+        </div>
+    </div>
 
-        function zoomIn() {
-            if (currentScale < maxScale) {
-                currentScale += scaleStep;
-                updateScale();
-            }
-        }
+    <!-- Модальное окно с описанием этажа -->
+    <div class="modal-overlay" id="descriptionModal">
+        <div class="modal">
+            <h3 id="descriptionTitle">Описание</h3>
+            <div class="description-content">
+                <p id="descriptionText">Описание здания...</p>
+                <div class="floor-plan" id="floorPlan">
+                    <!-- План этажа будет здесь -->
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="back-btn" onclick="backToFloors()">← Назад к этажам</button>
+                <button class="close-btn" onclick="closeDescriptionModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
 
-        function zoomOut() {
-            if (currentScale > minScale) {
-                currentScale -= scaleStep;
-                updateScale();
-            }
-        }
-
-        function resetZoom() {
-            currentScale = 1;
-            updateScale();
-        }
-
-        function updateScale() {
-            const map = document.getElementById('university-map');
-            map.style.transform = `scale(${currentScale})`;
-        }
-
-        // Добавляем обработчики для зданий (пока просто для демонстрации)
-        document.addEventListener('DOMContentLoaded', function() {
-            const buildings = document.querySelectorAll('.building');
-            
-            buildings.forEach((building, index) => {
-                building.addEventListener('click', function() {
-                    alert(`Кликнули на здание ${index + 1}`);
-                    // Здесь позже будет открытие попапа с информацией
-                });
-            });
-
-            // Масштабирование колесиком мыши
-            const mapContainer = document.querySelector('.map-container');
-            mapContainer.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    zoomIn();
-                } else {
-                    zoomOut();
-                }
-            });
-        });
-    </script>
+    <script src="main.js"></script>
 </body>
 </html>
