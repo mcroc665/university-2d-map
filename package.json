@@ -1,0 +1,10 @@
+{
+  "name": "2d-map",
+  "version": "1.0.0",
+  "description": "Интерактивная карта университета",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000"
+  },
+  "homepage": "https://your-username.github.io/2d-map"
+}
