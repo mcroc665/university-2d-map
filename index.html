@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Интерактивная карта кампуса</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <h1>Карта Южного Кампуса</h1>
+
+        <!-- Добавляем выпадающий список -->
+        <div class="search-container">
+            <select id="building-select" class="building-select">
+                <option value="">Выберите корпус...</option>
+                <!-- Опции будут добавлены через JavaScript -->
+            </select>
+        </div>
+
         <div class="map-container">
             <div id="map">
                 <!-- SVG будет вставлен через JavaScript -->
@@ -19,12 +30,34 @@
     <!-- Модальное окно -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="building-title"></h2>
-            <p id="building-description"></p>
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2 id="building-title"></h2>
+                <p id="building-description"></p>
+            </div>
+            <div class="modal-body">
+                <div class="floor-selection">
+                    <h3>Выберите этаж:</h3>
+                    <div class="floor-buttons" id="floor-buttons">
+                        <!-- Кнопки этажей будут генерироваться через JavaScript -->
+                    </div>
+                </div>
+                <div class="floor-plan">
+                    <div class="floor-plan-content">
+                        <div class="floor-plan-placeholder">🏢</div>
+                        <p>План этажа будет отображен здесь</p>
+                        <small>Выберите этаж для просмотра плана</small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="data.js"></script>
+    <script src="map-core.js"></script>
+    <script src="ui-controls.js"></script>
+    <script src="search.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

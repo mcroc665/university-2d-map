@@ -5,101 +5,185 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
-    color: #333;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 300;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .map-container {
     background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-#map {
-    width: 100%;
-    height: 80vh;
-    overflow: auto;
-}
-
+/* Убираем transform из SVG */
 #map svg {
     width: 100%;
     height: 100%;
-    transition: transform 0.3s ease;
+    /* Убираем transition: transform */
+}
+
+/* Добавляем новые стили для контейнера масштабирования */
+.svg-container {
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    /* Уменьшил время для более отзывчивого зума */
+}
+
+/* Обновляем стили карты */
+#map {
+    width: 100%;
+    height: 75vh;
+    overflow: auto;
+    border-radius: 15px;
+    background: #f8f9fa;
+}
+
+/* Стиль курсора при перетаскивании */
+#map.grabbing {
+    cursor: grabbing;
+}
+
+#map.grabbing * {
+    cursor: grabbing;
+}
+
+/* Стили для выпадающего списка */
+.search-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.building-select {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 250px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.building-select:hover {
+    border-color: #667eea;
+}
+
+.building-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Кнопки масштабирования */
 .zoom-controls {
     position: absolute;
-    top: 30px;
-    right: 30px;
+    top: 40px;
+    right: 40px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     z-index: 10;
 }
 
 .zoom-controls button {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
     font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    color: #333;
 }
 
 .zoom-controls button:hover {
-    background: #f0f0f0;
-    transform: scale(1.05);
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .zoom-controls button:active {
-    transform: scale(0.95);
+    transform: translateY(0);
 }
 
 #zoom-reset {
-    font-size: 12px;
-    margin-top: 5px;
+    font-size: 14px;
+    margin-top: 10px;
+    background: #ff6b6b;
+    color: white;
+}
+
+#zoom-reset:hover {
+    background: #ff5252;
 }
 
 /* Стили для интерактивных зданий */
 .building {
     cursor: pointer;
     transition: all 0.3s ease;
+    stroke: transparent;
+    stroke-width: 2px;
 }
 
 .building:hover {
-    opacity: 0.8;
     filter: brightness(1.1);
+    stroke: #667eea;
 }
 
 .building.highlighted {
     fill: #ff6b6b !important;
     stroke: #ff0000 !important;
-    stroke-width: 2px !important;
-    filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.6));
+    stroke-width: 3px !important;
+    filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.6));
+    /* Убрали анимацию pulse */
 }
+
+/* Убрали keyframes pulse */
 
 /* Модальное окно */
 .modal {
@@ -110,43 +194,137 @@ h1 {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    animation: fadeIn 0.3s;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.4s;
 }
 
 .modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 30px;
-    border-radius: 10px;
+    background: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 20px;
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     position: relative;
-    animation: slideIn 0.3s;
+    animation: slideIn 0.4s;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    color: white;
+    position: relative;
+}
+
+.modal-body {
+    padding: 30px;
 }
 
 .close {
     position: absolute;
-    right: 15px;
-    top: 15px;
+    right: 20px;
+    top: 20px;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    color: #333;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .close:hover {
-    color: #ff6b6b;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
 }
 
 #building-title {
-    color: #333;
-    margin-bottom: 15px;
+    font-size: 1.8rem;
+    font-weight: 300;
+    margin-bottom: 10px;
 }
 
 #building-description {
-    color: #666;
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Выбор этажа */
+.floor-selection {
+    margin: 25px 0;
+}
+
+.floor-selection h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+.floor-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.floor-btn {
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #495057;
+}
+
+.floor-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+.floor-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Окно плана этажа */
+.floor-plan {
+    margin-top: 25px;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.floor-plan-content {
+    padding: 40px;
+    text-align: center;
+}
+
+.floor-plan-placeholder {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
 }
 
 /* Анимации */
@@ -162,32 +340,59 @@ h1 {
 
 @keyframes slideIn {
     from {
-        transform: translateY(-50px);
+        transform: translateY(-50px) scale(0.9);
         opacity: 0;
     }
 
     to {
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
         opacity: 1;
     }
 }
 
 /* Полоса прокрутки для карты */
 #map::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
 }
 
 #map::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 #map::-webkit-scrollbar-thumb {
     background: #c1c1c1;
-    border-radius: 4px;
+    border-radius: 6px;
+    border: 2px solid #f1f1f1;
 }
 
 #map::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+    }
+
+    .modal-header {
+        padding: 20px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .zoom-controls {
+        top: 20px;
+        right: 20px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+}
+
