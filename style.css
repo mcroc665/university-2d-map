@@ -396,3 +396,38 @@ h1 {
     }
 }
 
+.classrooms-list {
+    margin: 20px 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.classroom-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.classroom-item:hover {
+    background: #f5f5f5;
+}
+
+.classroom-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.classroom-number {
+    font-weight: bold;
+    min-width: 60px;
+}
+
+.classroom-type {
+    padding: 2px 8px;
+    background: #667eea;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+}

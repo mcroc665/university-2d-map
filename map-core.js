@@ -155,6 +155,7 @@ class MapCore {
     selectFloor(floor) {
         this.currentFloor = floor;
         this.updateFloorPlan();
+        this.updateClassroomsList(floor);
     }
 
     updateFloorPlan() {
@@ -199,5 +200,73 @@ class MapCore {
         document.querySelectorAll('.floor-btn').forEach(btn => {
             btn.classList.remove('active');
         });
+    }
+    // В метод selectFloor добавляем:
+    selectFloor(floor) {
+        this.currentFloor = floor;
+        this.updateFloorPlan();
+        this.updateClassroomsList(floor); // ЭТО НУЖНО АКТИВИРОВАТЬ
+    }
+
+    // Добавляем метод updateClassroomsList (если его нет):
+    updateClassroomsList(floor) {
+        const classroomsList = document.getElementById('classrooms-list');
+        if (!classroomsList || !this.currentBuilding) return;
+
+        // Берем данные из classroomsData
+        const classrooms = classroomsData[this.currentBuilding]?.[floor.number] || [];
+
+        if (classrooms.length === 0) {
+            classroomsList.innerHTML = '<div class="classroom-item">Нет данных об аудиториях</div>';
+            return;
+        }
+
+        // Отрисовываем список
+        classroomsList.innerHTML = '';
+        classrooms.forEach(classroom => {
+            const item = document.createElement('div');
+            item.className = 'classroom-item';
+            item.innerHTML = `
+            <div class="classroom-info">
+                <span class="classroom-number">${classroom.number}</span>
+                <span class="classroom-name">${classroom.name}</span>
+                <span class="classroom-type ${classroom.type}">
+                    ${this.getClassroomTypeName(classroom.type)}
+                </span>
+            </div>
+        `;
+
+            item.addEventListener('click', () => this.selectClassroom(classroom));
+            classroomsList.appendChild(item);
+        });
+    }
+
+    // Вспомогательный метод для названий типов
+    getClassroomTypeName(type) {
+        const types = {
+            'lecture': 'Лекционная',
+            'seminar': 'Семинарская',
+            'lab': 'Лаборатория',
+            'computer': 'Компьютерный класс'
+        };
+        return types[type] || type;
+    }
+    selectClassroom(classroom) {
+        // Подсветка в списке
+        document.querySelectorAll('.classroom-item').forEach(item => {
+            item.style.background = '';
+        });
+        event.currentTarget.style.background = '#e3f2fd';
+
+        // Показываем информацию об аудитории
+        this.showClassroomDetails(classroom);
+    }
+
+    showClassroomDetails(classroom) {
+        // Создаем простой вывод в консоль для начала
+        console.log('Выбрана аудитория:', classroom);
+
+        // Можно добавить всплывающее окно или вывод в интерфейс
+        alert(`Аудитория ${classroom.number}\n${classroom.name}`);
     }
 }
