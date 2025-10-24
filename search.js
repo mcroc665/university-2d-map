@@ -17,11 +17,14 @@ class SearchManager {
             this.selectElement.removeChild(this.selectElement.lastChild);
         }
 
-        Object.keys(buildingData).forEach(buildingId => {
-            const building = buildingData[buildingId];
+        // ИСПОЛЬЗУЕМ DataManager для получения списка зданий
+        const buildings = DataManager.getAllBuildings();
+
+        buildings.forEach(buildingId => {
+            const buildingInfo = DataManager.getBuildingInfo(buildingId);
             const option = document.createElement('option');
             option.value = buildingId;
-            option.textContent = building.title;
+            option.textContent = buildingInfo.title;
             this.selectElement.appendChild(option);
         });
     }

@@ -35,26 +35,50 @@
                 <h2 id="building-title"></h2>
                 <p id="building-description"></p>
             </div>
-            <div class="modal-body">
-                <div class="floor-selection">
-                    <h3>Выберите этаж:</h3>
-                    <div class="floor-buttons" id="floor-buttons">
-                        <!-- Кнопки этажей будут генерироваться через JavaScript -->
-                    </div>
+        <div class="modal-body">
+            <div class="floor-selection">
+                <h3>Выберите этаж:</h3>
+                <div class="floor-buttons" id="floor-buttons"></div>
+            </div>
+        
+            <div class="classrooms-section">
+                <h3>Аудитории этажа</h3>
                 <div class="classrooms-list" id="classrooms-list"></div>
+            </div>
+        
+            <!-- БЛОК ДЛЯ ИНФОРМАЦИИ О АУДИТОРИИ -->
+            <div class="classroom-details" id="classroom-details" style="display: none;">
+                <div class="classroom-details-header">
+                    <h3>Информация об аудитории</h3>
+                    <button class="close-details">&times;</button>
                 </div>
-                <div class="floor-plan">
-                    <div class="floor-plan-content">
-                        <div class="floor-plan-placeholder">🏢</div>
-                        <p>План этажа будет отображен здесь</p>
-                        <small>Выберите этаж для просмотра плана</small>
+                <div class="classroom-details-content">
+                    <div class="classroom-main-info">
+                        <span class="classroom-details-number" id="classroom-number"></span>
+                        <span class="classroom-details-name" id="classroom-name"></span>
+                    </div>
+                    <div class="classroom-additional-info">
+                        <p class="classroom-type-badge" id="classroom-type"></p>
+                        <p class="classroom-description" id="classroom-description"></p>
                     </div>
                 </div>
             </div>
+        
+            <div class="floor-plan">
+                <div class="floor-plan-content">
+                    <div class="floor-plan-placeholder">🏢</div>
+                    <p>План этажа будет отображен здесь</p>
+                    <small>Выберите этаж для просмотра плана</small>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 
-    <script src="data.js"></script>
+    <script src="data/buildings-info.js"></script>
+    <script src="data/classrooms-3Ablock.js"></script>
+    <script src="data/data-manager.js"></script>
+
     <script src="map-core.js"></script>
     <script src="ui-controls.js"></script>
     <script src="search.js"></script>
