@@ -180,8 +180,7 @@ const buildingsInfo = {
         title: 'Корпус 18',
         description: 'Учебный корпус №18. тут компьютеры и наша кафедрель.',
         floors: [
-            { number: 1, name: 'Первый этаж', hasPlan: false },
-            { number: 2, name: 'Второй этаж', hasPlan: false },
+            { number: 2, name: 'Первый этаж', hasPlan: true, planUrl: 'assets/plans/plan-18corpus.svg', planType: 'interactive'},
             { number: 3, name: 'Третий этаж', hasPlan: false },
             { number: 4, name: 'Четвертый этаж', hasPlan: false },
             { number: 5, name: 'Пятый этаж', hasPlan: false }

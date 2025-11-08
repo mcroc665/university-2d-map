@@ -9,6 +9,7 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 20px;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .container {
@@ -25,6 +26,7 @@ h1 {
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
+/* Стили карты */
 .map-container {
     background: white;
     border-radius: 20px;
@@ -36,22 +38,6 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Убираем transform из SVG */
-#map svg {
-    width: 100%;
-    height: 100%;
-    /* Убираем transition: transform */
-}
-
-/* Добавляем новые стили для контейнера масштабирования */
-.svg-container {
-    width: 100%;
-    height: 100%;
-    transform-origin: 0 0;
-    /* Уменьшил время для более отзывчивого зума */
-}
-
-/* Обновляем стили карты */
 #map {
     width: 100%;
     height: 75vh;
@@ -60,16 +46,18 @@ h1 {
     background: #f8f9fa;
 }
 
-/* Стиль курсора при перетаскивании */
-#map.grabbing {
-    cursor: grabbing;
+.svg-container {
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
 }
 
-#map.grabbing * {
-    cursor: grabbing;
+#map svg {
+    width: 100%;
+    height: 100%;
 }
 
-/* Стили для выпадающего списка */
+/* Выпадающий список */
 .search-container {
     margin-bottom: 20px;
     text-align: center;
@@ -98,71 +86,374 @@ h1 {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-
-
-@keyframes fadeInOut {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Основная структура */
+.main-content {
+    min-height: 100vh;
 }
 
-/* Кнопки масштабирования */
-.zoom-controls {
+/* Боковая панель информации */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -450px;
+    width: 450px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
+    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.open {
+    right: 0;
+}
+
+.sidebar-header {
+    padding: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.sidebar-close {
     position: absolute;
-    top: 40px;
-    right: 40px;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.sidebar-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem;
+    font-weight: 400;
+    padding-right: 40px;
+}
+
+.sidebar-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* ФИКС: Убираем ограничение высоты и прокрутку у всего контента */
+.sidebar-content {
+    flex: 1;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    /* УБИРАЕМ ограничения - прокрутка будет на уровне всей панели */
+    max-height: none;
+    overflow-y: visible;
+}
+
+/* Секция этажей - ДЕЛАЕМ ВЫСОКОЙ и без прокрутки */
+.floor-selection {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    min-height: 280px; /* Увеличиваем ещё больше */
+    /* Запрещаем прокрутку в этой секции */
+    overflow: hidden;
+}
+
+.floor-selection h3 {
+    margin: 0 0 20px 0; /* Увеличиваем отступ */
+    font-size: 1.3rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.floor-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Увеличиваем промежутки */
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    /* Запрещаем прокрутку */
+    overflow: visible;
+    min-height: 120px; /* Гарантируем достаточно места */
+}
+
+.floor-btn {
+    padding: 12px 18px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #495057;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 70px;
+    text-align: center;
+}
+
+.floor-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateY(-2px);
+}
+
+.floor-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Кнопка показа плана */
+.plan-button-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    flex-shrink: 0;
+    /* Запрещаем прокрутку */
+    overflow: hidden;
+}
+
+.show-plan-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.show-plan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+.show-plan-btn:active {
+    transform: translateY(0);
+}
+
+/* Секция аудиторий - сохраняем прокрутку */
+.classrooms-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 350px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.classrooms-count {
+    font-size: 0.9rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 12px;
+}
+
+.classrooms-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+    /* Увеличиваем максимальную высоту */
+    max-height: 400px;
+}
+
+.classroom-item {
+    padding: 16px;
+    border-bottom: 1px solid #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.classroom-item:hover {
+    background: #f8f9fa;
+}
+
+.classroom-item.selected {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.classroom-item:last-child {
+    border-bottom: none;
+}
+
+.classroom-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.classroom-number {
+    font-weight: bold;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.classroom-name {
+    color: #6c757d;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.classroom-type {
+    font-size: 0.85rem;
+    padding: 5px 12px;
+    border-radius: 12px;
+    background: #e9ecef;
+    color: #495057;
+    align-self: flex-start;
+}
+
+/* Цвета для типов аудиторий */
+.classroom-type.lecture { background: #4CAF50; color: white; }
+.classroom-type.seminar { background: #2196F3; color: white; }
+.classroom-type.lab { background: #FF9800; color: white; }
+.classroom-type.computer { background: #9C27B0; color: white; }
+.classroom-type.office { background: #795548; color: white; }
+.classroom-type.staff { background: #607D8B; color: white; }
+.classroom-type.other { background: #757575; color: white; }
+
+/* Окно плана этажа */
+.plan-window {
+    position: fixed;
+    top: 0;
+    left: -500px;
+    width: 500px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
+    transition: left 0.3s ease;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-window.open {
+    left: 0;
+}
+
+.plan-header {
+    padding: 25px;
+    background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%);
+    color: white;
+    position: relative;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.plan-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+.plan-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.plan-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.plan-content {
+    flex: 1;
+    padding: 0;
+    background: #f8f9fa;
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-svg-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: white;
+    position: relative;
+}
+
+.plan-zoom-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     z-index: 10;
 }
 
-.zoom-controls button {
-    width: 45px;
-    height: 45px;
+.plan-zoom-controls button {
+    width: 40px;
+    height: 40px;
     background: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 20px;
-    font-weight: bold;
+    border: 1px solid #ddd;
+    border-radius: 8px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    color: #333;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.zoom-controls button:hover {
-    background: #667eea;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.plan-zoom-controls button:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
 }
 
-.zoom-controls button:active {
-    transform: translateY(0);
-}
-
-#zoom-reset {
-    font-size: 14px;
-    margin-top: 10px;
-    background: #ff6b6b;
-    color: white;
-}
-
-#zoom-reset:hover {
-    background: #ff5252;
-}
-
-/* Стили для интерактивных зданий */
+/* Интерактивные элементы карты */
 .building {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -180,435 +471,192 @@ h1 {
     stroke: #ff0000 !important;
     stroke-width: 3px !important;
     filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.6));
-    /* Убрали анимацию pulse */
 }
 
-/* Убрали keyframes pulse */
-
-/* Модальное окно */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    animation: fadeIn 0.4s;
+.room-highlighted {
+    stroke: #ff0000 !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.7)) !important;
+    transition: all 0.3s ease !important;
 }
 
-.modal-content {
-    background: white;
-    margin: 5% auto;
-    padding: 0;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 600px;
-    position: relative;
-    animation: slideIn 0.4s;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 30px;
-    color: white;
-    position: relative;
-}
-
-.modal-body {
-    padding: 30px;
-}
-
-.close {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 28px;
-    font-weight: bold;
+.building-path {
     cursor: pointer;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
 }
 
-.close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
+.building-path:hover {
+    filter: brightness(1.1);
+    stroke-width: 2px;
+    stroke: #555;
 }
 
-#building-title {
-    font-size: 1.8rem;
-    font-weight: 300;
-    margin-bottom: 10px;
+/* ФИКС: Добавляем прокрутку для всей боковой панели */
+.sidebar {
+    overflow-y: auto; /* Теперь вся панель прокручивается */
 }
 
-#building-description {
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
-    font-size: 1rem;
+/* Полосы прокрутки */
+#map::-webkit-scrollbar,
+.classrooms-list::-webkit-scrollbar,
+.plan-svg-container::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    width: 8px;
 }
 
-/* Выбор этажа */
-.floor-selection {
-    margin: 25px 0;
-}
-
-.floor-selection h3 {
-    color: #333;
-    margin-bottom: 15px;
-    font-weight: 500;
-    font-size: 1.2rem;
-}
-
-.floor-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.floor-btn {
-    padding: 12px 20px;
-    background: #f8f9fa;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    color: #495057;
-}
-
-.floor-btn:hover {
-    border-color: #667eea;
-    color: #667eea;
-    transform: translateY(-2px);
-}
-
-.floor-btn.active {
-    background: #667eea;
-    border-color: #667eea;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-/* Окно плана этажа */
-.floor-plan {
-    margin-top: 25px;
-    border-radius: 15px;
-    overflow: hidden;
-    background: #f8f9fa;
-    border: 2px dashed #dee2e6;
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6c757d;
-    font-size: 1.1rem;
-}
-
-.floor-plan-content {
-    padding: 40px;
-    text-align: center;
-}
-
-.floor-plan-placeholder {
-    font-size: 4rem;
-    margin-bottom: 15px;
-    opacity: 0.5;
-}
-
-/* Анимации */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-50px) scale(0.9);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-/* Полоса прокрутки для карты */
-#map::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-#map::-webkit-scrollbar-track {
+#map::-webkit-scrollbar-track,
+.classrooms-list::-webkit-scrollbar-track,
+.plan-svg-container::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
-#map::-webkit-scrollbar-thumb {
+#map::-webkit-scrollbar-thumb,
+.classrooms-list::-webkit-scrollbar-thumb,
+.plan-svg-container::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
     background: #c1c1c1;
-    border-radius: 6px;
-    border: 2px solid #f1f1f1;
+    border-radius: 4px;
 }
 
-#map::-webkit-scrollbar-thumb:hover {
+#map::-webkit-scrollbar-thumb:hover,
+.classrooms-list::-webkit-scrollbar-thumb:hover,
+.plan-svg-container::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
 
-/* ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ УСТРОЙСТВ - ВНЕ медиа-запроса */
+/* Адаптивность */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+    
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    
+    .map-container {
+        padding: 15px;
+        border-radius: 15px;
+    }
+    
+    #map {
+        height: 60vh;
+    }
+    
+    .sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .plan-window {
+        width: 100%;
+        left: -100%;
+    }
+    
+    .sidebar-header,
+    .plan-header {
+        padding: 20px;
+    }
+    
+    .sidebar-content {
+        padding: 20px;
+        /* Убираем ограничение высоты */
+        max-height: none;
+    }
+    
+    .plan-zoom-controls button {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    /* Увеличиваем минимальную высоту для мобильных */
+    .floor-selection {
+        min-height: 250px;
+    }
+    
+    .floor-buttons {
+        min-height: 100px;
+    }
+}
 
-/* Сделаем модальное окно прокручиваемым */
-.modal-content {
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.7rem;
+    }
+    
+    .building-select {
+        min-width: 200px;
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+    
+    .floor-buttons {
+        gap: 6px;
+    }
+    
+    .floor-btn {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        min-width: 65px;
+    }
+    
+    .sidebar-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .show-plan-btn {
+        padding: 12px 15px;
+        font-size: 1rem;
+    }
+}
+
+/* Дополнительные стили для плана */
+.plan-svg-container svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.plan-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.plan-controls button {
+    width: 40px;
+    height: 40px;
     background: white;
-    margin: 2% auto;
-    padding: 0;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    animation: slideIn 0.4s;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-}
-
-/* Убедимся что модальное тело тоже прокручивается если нужно */
-.modal-body {
-    padding: 30px;
-    max-height: calc(90vh - 200px);
-    overflow-y: auto;
-}
-
-/* Стили для classrooms-section */
-/* Стили для списка аудиторий */
-.classrooms-section {
-    margin: 25px 0;
-}
-
-.classrooms-section h3 {
-    color: #222;
-    margin-bottom: 15px;
-    font-weight: 600;
-    font-size: 1.2rem;
-}
-
-.classrooms-list {
-    max-height: 300px;
-    overflow-y: auto;
     border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #ffffff;
-}
-
-.classroom-item {
-    padding: 12px 15px;
-    border-bottom: 1px solid #f0f0f0;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.classroom-item:hover {
-    background: #f9f9f9;
-}
-
-.classroom-item:last-child {
-    border-bottom: none;
-}
-
-.classroom-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.classroom-number {
     font-weight: bold;
-    color: #1a1a1a;
-    min-width: 60px;
-}
-
-.classroom-name {
-    color: #444;
-    flex-grow: 1;
-}
-
-.classroom-type {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    color: #fff;
-}
-
-/* Цвета для типов аудиторий — яркие, но сбалансированные */
-.classroom-type.lecture {
-    background: #4CAF50;
-}
-
-/* зеленый */
-.classroom-type.seminar {
-    background: #2196F3;
-}
-
-/* синий */
-.classroom-type.lab {
-    background: #FF9800;
-}
-
-/* оранжевый */
-.classroom-type.computer {
-    background: #9C27B0;
-}
-
-/* фиолетовый */
-.classroom-type.office {
-    background: #795548;
-}
-
-/* коричневый для офисов */
-.classroom-type.other {
-    background: #607D8B;
-}
-
-/* серо-голубой для других */
-/* Стили для блока с информацией об аудитории */
-.classroom-details {
-    margin: 20px 0;
-    border: 2px solid #00bcd4;
-    border-radius: 15px;
-    background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
-
-.classroom-details-header {
-    background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%);
-    padding: 15px 20px;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.classroom-details-header h3 {
-    margin: 0;
     font-size: 1.2rem;
-    font-weight: 500;
-}
-
-.close-details {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.3s ease;
 }
 
-.close-details:hover {
-    background: rgba(255, 255, 255, 0.25);
+.plan-controls button:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
 }
 
-.classroom-details-content {
-    padding: 20px;
-}
-
-.classroom-main-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.classroom-details-number {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
-    background: #2196f3;
-    padding: 5px 12px;
-    border-radius: 8px;
-    border: 2px solid #00bcd4;
-}
-
-.classroom-details-name {
-    font-size: 1.1rem;
-    color: #222;
-    flex-grow: 1;
-}
-
-.classroom-additional-info {
-    color: #555;
-}
-
-.classroom-type-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    background: #ff5722;
-    color: #fff;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-}
-
-.classroom-description {
-    margin: 0;
-    line-height: 1.5;
-    color: #333;
-}
-
-/* Адаптивность - ТОЛЬКО изменения для мобильных */
-@media (max-width: 768px) {
-    .modal-content {
-        margin: 5% auto;
-        width: 95%;
-        max-height: 95vh;
-    }
-
-    .modal-body {
-        padding: 20px;
-        max-height: calc(95vh - 150px);
-    }
-
-    .classroom-main-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .classroom-details-header h3 {
-        font-size: 1.1rem;
-    }
-
-    .classrooms-list {
-        max-height: 200px;
-    }
-
-    /* Другие специфичные для мобильных стили */
+.plan-controls button:active {
+    transform: scale(0.95);
 }

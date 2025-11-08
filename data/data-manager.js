@@ -6,6 +6,7 @@ const DataManager = {
     getClassrooms(buildingId, floor) {
         switch (buildingId) {
             case '3Ablock': return classrooms3Ablock[floor] || [];  // ДОБАВЬТЕ ЭТУ СТРОЧКУ
+            case '18block': return classrooms18block[floor] || [];
             default: return [];
         }
     },
