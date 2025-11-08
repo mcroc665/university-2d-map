@@ -108,5 +108,449 @@
     <script src="ui-controls.js"></script>
     <script src="search.js"></script>
     <script src="app.js"></script>
+
+    <script>
+// Управление планом этажа
+class PlanManager {
+    constructor() {
+        this.planWindow = document.querySelector('.plan-window');
+        this.svg = document.querySelector('#plan-svg');
+        this.planContent = document.querySelector('#plan-content');
+        this.zoomInBtn = document.querySelector('#plan-zoom-in');
+        this.zoomOutBtn = document.querySelector('#plan-zoom-out');
+        this.resetBtn = document.querySelector('#plan-reset');
+        
+        this.currentScale = 1;
+        this.minScale = 0.3;
+        this.maxScale = 3;
+        this.scaleStep = 0.2;
+        
+        this.isDragging = false;
+        this.startX = 0;
+        this.startY = 0;
+        this.translateX = 0;
+        this.translateY = 0;
+        
+        this.currentFloor = 1;
+        this.selectedRoom = null;
+        
+        this.init();
+    }
+    
+    init() {
+        // Инициализация обработчиков событий
+        this.zoomInBtn.addEventListener('click', () => this.zoomIn());
+        this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
+        this.resetBtn.addEventListener('click', () => this.resetView());
+        
+        // Обработчики для перемещения плана
+        this.svg.addEventListener('mousedown', (e) => this.startDrag(e));
+        this.svg.addEventListener('mousemove', (e) => this.drag(e));
+        this.svg.addEventListener('mouseup', () => this.endDrag());
+        this.svg.addEventListener('mouseleave', () => this.endDrag());
+        
+        // Предотвращение контекстного меню
+        this.svg.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        this.resetView();
+    }
+    
+    startDrag(e) {
+        if (e.button !== 0) return; // только левая кнопка мыши
+        e.preventDefault();
+        this.isDragging = true;
+        
+        const rect = this.svg.getBoundingClientRect();
+        this.startX = e.clientX - this.translateX;
+        this.startY = e.clientY - this.translateY;
+        
+        this.svg.style.cursor = 'grabbing';
+    }
+    
+    drag(e) {
+        if (!this.isDragging) return;
+        e.preventDefault();
+        
+        this.translateX = e.clientX - this.startX;
+        this.translateY = e.clientY - this.startY;
+        
+        this.updateTransform();
+    }
+    
+    endDrag() {
+        this.isDragging = false;
+        this.svg.style.cursor = 'grab';
+    }
+    
+    zoomIn() {
+        if (this.currentScale < this.maxScale) {
+            this.currentScale = Math.min(this.maxScale, this.currentScale + this.scaleStep);
+            this.updateTransform();
+        }
+    }
+    
+    zoomOut() {
+        if (this.currentScale > this.minScale) {
+            this.currentScale = Math.max(this.minScale, this.currentScale - this.scaleStep);
+            this.updateTransform();
+        }
+    }
+    
+    resetView() {
+        this.currentScale = 1;
+        this.translateX = 0;
+        this.translateY = 0;
+        this.updateTransform();
+    }
+    
+    updateTransform() {
+        this.planContent.setAttribute('transform', 
+            `translate(${this.translateX}, ${this.translateY}) scale(${this.currentScale})`
+        );
+    }
+    
+    // Загрузка плана этажа
+    loadFloorPlan(floorNumber) {
+        // Очищаем предыдущий план
+        this.planContent.innerHTML = '';
+        this.currentFloor = floorNumber;
+        
+        // Создаем план для выбранного этажа
+        this.createFloorPlan(floorNumber);
+        
+        // Сбрасываем вид после загрузки нового плана
+        this.resetView();
+        
+        // Если есть выбранная аудитория, подсвечиваем её на плане
+        this.highlightSelectedClassroom();
+    }
+    
+    createFloorPlan(floorNumber) {
+        const rooms = this.getRoomsForFloor(floorNumber);
+        
+        rooms.forEach(room => {
+            const roomGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            roomGroup.classList.add('plan-room');
+            roomGroup.setAttribute('data-room-id', room.id);
+            roomGroup.setAttribute('data-room-number', room.number);
+            
+            // Прямоугольник комнаты
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', room.x);
+            rect.setAttribute('y', room.y);
+            rect.setAttribute('width', room.width);
+            rect.setAttribute('height', room.height);
+            rect.setAttribute('fill', room.color);
+            rect.setAttribute('stroke', '#333');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('rx', '5');
+            
+            // Текст с номером комнаты
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', room.x + room.width / 2);
+            text.setAttribute('y', room.y + room.height / 2);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('fill', 'white');
+            text.setAttribute('font-weight', 'bold');
+            text.setAttribute('font-size', '14');
+            text.textContent = room.number;
+            
+            roomGroup.appendChild(rect);
+            roomGroup.appendChild(text);
+            this.planContent.appendChild(roomGroup);
+            
+            // Добавляем обработчики событий для комнат
+            roomGroup.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.onRoomSelect(room.id, room.number);
+            });
+            
+            roomGroup.style.cursor = 'pointer';
+        });
+    }
+    
+    getRoomsForFloor(floorNumber) {
+        // Пример данных для разных этажей
+        const floorPlans = {
+            1: [
+                { id: 'room-101', x: 100, y: 100, width: 120, height: 80, number: '101', color: '#4CAF50', type: 'lecture' },
+                { id: 'room-102', x: 250, y: 100, width: 120, height: 80, number: '102', color: '#2196F3', type: 'seminar' },
+                { id: 'room-103', x: 400, y: 100, width: 120, height: 80, number: '103', color: '#FF9800', type: 'lab' },
+                { id: 'room-104', x: 100, y: 220, width: 120, height: 80, number: '104', color: '#9C27B0', type: 'computer' },
+                { id: 'room-105', x: 250, y: 220, width: 120, height: 80, number: '105', color: '#795548', type: 'office' }
+            ],
+            2: [
+                { id: 'room-201', x: 100, y: 100, width: 120, height: 80, number: '201', color: '#4CAF50', type: 'lecture' },
+                { id: 'room-202', x: 250, y: 100, width: 120, height: 80, number: '202', color: '#2196F3', type: 'seminar' },
+                { id: 'room-203', x: 400, y: 100, width: 120, height: 80, number: '203', color: '#FF9800', type: 'lab' },
+                { id: 'room-204', x: 100, y: 220, width: 120, height: 80, number: '204', color: '#9C27B0', type: 'computer' }
+            ],
+            3: [
+                { id: 'room-301', x: 100, y: 100, width: 150, height: 100, number: '301', color: '#4CAF50', type: 'lecture' },
+                { id: 'room-302', x: 280, y: 100, width: 150, height: 100, number: '302', color: '#2196F3', type: 'seminar' },
+                { id: 'room-303', x: 100, y: 240, width: 150, height: 100, number: '303', color: '#FF9800', type: 'lab' }
+            ]
+        };
+        
+        return floorPlans[floorNumber] || floorPlans[1];
+    }
+    
+    onRoomSelect(roomId, roomNumber) {
+        // Сохраняем выбранную комнату
+        this.selectedRoom = { id: roomId, number: roomNumber };
+        
+        // Подсвечиваем комнату на плане
+        this.highlightRoomOnPlan(roomId);
+        
+        // Находим и выделяем соответствующую аудиторию в списке
+        this.selectClassroomInList(roomNumber);
+    }
+    
+    highlightRoomOnPlan(roomId) {
+        // Убираем подсветку со всех комнат
+        this.clearRoomHighlights();
+        
+        // Подсвечиваем выбранную комнату
+        const selectedRoom = this.planContent.querySelector(`[data-room-id="${roomId}"]`);
+        if (selectedRoom) {
+            selectedRoom.classList.add('plan-room-highlighted');
+        }
+    }
+    
+    clearRoomHighlights() {
+        const allRooms = this.planContent.querySelectorAll('.plan-room');
+        allRooms.forEach(room => {
+            room.classList.remove('plan-room-highlighted');
+        });
+    }
+    
+    selectClassroomInList(roomNumber) {
+        // Находим элемент списка с соответствующим номером аудитории
+        const classroomItems = document.querySelectorAll('.classroom-item');
+        let found = false;
+        
+        classroomItems.forEach(item => {
+            const numberElement = item.querySelector('.classroom-number');
+            if (numberElement && numberElement.textContent.trim() === roomNumber.trim()) {
+                // Снимаем выделение со всех элементов
+                classroomItems.forEach(i => i.classList.remove('selected'));
+                // Выделяем найденный элемент
+                item.classList.add('selected');
+                // Прокручиваем к выбранному элементу
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                found = true;
+            }
+        });
+        
+        if (!found) {
+            console.log('Аудитория не найдена в списке:', roomNumber);
+        }
+    }
+    
+    // Подсветка комнаты на плане при выборе из списка
+    highlightRoomOnPlanByNumber(roomNumber) {
+        // Убираем подсветку со всех комнат
+        this.clearRoomHighlights();
+        
+        // Ищем комнату по номеру
+        const allRooms = this.planContent.querySelectorAll('.plan-room');
+        let found = false;
+        
+        allRooms.forEach(room => {
+            const roomNumberAttr = room.getAttribute('data-room-number');
+            if (roomNumberAttr && roomNumberAttr.trim() === roomNumber.trim()) {
+                room.classList.add('plan-room-highlighted');
+                this.selectedRoom = { 
+                    id: room.getAttribute('data-room-id'), 
+                    number: roomNumber 
+                };
+                found = true;
+                
+                // Центрируем вид на выделенной комнате (опционально)
+                this.centerOnRoom(room);
+            }
+        });
+        
+        if (!found) {
+            console.log('Комната не найдена на плане:', roomNumber);
+        }
+    }
+    
+    centerOnRoom(roomElement) {
+        const rect = roomElement.querySelector('rect');
+        if (!rect) return;
+        
+        const x = parseFloat(rect.getAttribute('x'));
+        const y = parseFloat(rect.getAttribute('y'));
+        const width = parseFloat(rect.getAttribute('width'));
+        const height = parseFloat(rect.getAttribute('height'));
+        
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
+        
+        // Центрируем вид на комнате
+        const svgRect = this.svg.getBoundingClientRect();
+        this.translateX = -centerX * this.currentScale + svgRect.width / 2;
+        this.translateY = -centerY * this.currentScale + svgRect.height / 2;
+        
+        this.updateTransform();
+    }
+    
+    // Подсветка выбранной аудитории при загрузке плана
+    highlightSelectedClassroom() {
+        const selectedClassroom = document.querySelector('.classroom-item.selected');
+        if (selectedClassroom) {
+            const numberElement = selectedClassroom.querySelector('.classroom-number');
+            if (numberElement) {
+                const roomNumber = numberElement.textContent.trim();
+                this.highlightRoomOnPlanByNumber(roomNumber);
+            }
+        }
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const planManager = new PlanManager();
+    
+    // Добавляем SVG фильтр для подсветки
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    filter.setAttribute('id', 'glow');
+    filter.setAttribute('x', '-100%');
+    filter.setAttribute('y', '-100%');
+    filter.setAttribute('width', '300%');
+    filter.setAttribute('height', '300%');
+    
+    const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+    feGaussianBlur.setAttribute('in', 'SourceGraphic');
+    feGaussianBlur.setAttribute('stdDeviation', '4');
+    feGaussianBlur.setAttribute('result', 'blur');
+    
+    const feColorMatrix = document.createElementNS('http://www.w3.org/2000/svg', 'feColorMatrix');
+    feColorMatrix.setAttribute('in', 'blur');
+    feColorMatrix.setAttribute('type', 'matrix');
+    feColorMatrix.setAttribute('values', '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8');
+    feColorMatrix.setAttribute('result', 'glow');
+    
+    const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+    const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+    feMergeNode1.setAttribute('in', 'glow');
+    const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+    feMergeNode2.setAttribute('in', 'SourceGraphic');
+    
+    feMerge.appendChild(feMergeNode1);
+    feMerge.appendChild(feMergeNode2);
+    filter.appendChild(feGaussianBlur);
+    filter.appendChild(feColorMatrix);
+    filter.appendChild(feMerge);
+    defs.appendChild(filter);
+    document.querySelector('#plan-svg').appendChild(defs);
+    
+    // Обработчики для открытия/закрытия плана
+    const showPlanBtn = document.querySelector('.show-plan-btn');
+    const planCloseBtn = document.querySelector('.plan-close');
+    
+    showPlanBtn.addEventListener('click', function() {
+        // Получаем текущий выбранный этаж
+        const activeFloorBtn = document.querySelector('.floor-btn.active');
+        let currentFloor = 1;
+        if (activeFloorBtn) {
+            currentFloor = parseInt(activeFloorBtn.getAttribute('data-floor')) || 1;
+        }
+        
+        planManager.planWindow.classList.add('open');
+        // Загружаем план для текущего этажа
+        planManager.loadFloorPlan(currentFloor);
+    });
+    
+    planCloseBtn.addEventListener('click', function() {
+        planManager.planWindow.classList.remove('open');
+    });
+    
+    // Закрытие плана при клике вне его
+    planManager.planWindow.addEventListener('click', function(e) {
+        if (e.target === planManager.planWindow) {
+            planManager.planWindow.classList.remove('open');
+        }
+    });
+    
+    // Обработка выбора этажа
+    document.querySelectorAll('.floor-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const floor = parseInt(this.getAttribute('data-floor')) || 1;
+            
+            // Если план открыт, обновляем его
+            if (planManager.planWindow.classList.contains('open')) {
+                planManager.loadFloorPlan(floor);
+            }
+        });
+    });
+    
+    // Обработка выбора аудитории в списке - подсветка на плане
+    document.addEventListener('click', function(e) {
+        const classroomItem = e.target.closest('.classroom-item');
+        if (classroomItem) {
+            // Снимаем выделение со всех элементов
+            document.querySelectorAll('.classroom-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Выделяем текущий элемент
+            classroomItem.classList.add('selected');
+            
+            const numberElement = classroomItem.querySelector('.classroom-number');
+            if (numberElement) {
+                const roomNumber = numberElement.textContent;
+                
+                // Подсвечиваем комнату на плане, если план открыт
+                if (planManager.planWindow.classList.contains('open')) {
+                    planManager.highlightRoomOnPlanByNumber(roomNumber);
+                }
+            }
+        }
+    });
+    
+    // Инициализация кнопок этажей
+    document.querySelectorAll('.floor-btn').forEach((btn, index) => {
+        if (!btn.getAttribute('data-floor')) {
+            btn.setAttribute('data-floor', (index + 1).toString());
+        }
+    });
+    
+    // Добавляем тестовые данные в список аудиторий
+    const classroomsList = document.querySelector('.classrooms-list');
+    if (classroomsList && classroomsList.children.length === 0) {
+        const testClassrooms = [
+            { number: '101', name: 'Лекционная аудитория', type: 'lecture' },
+            { number: '102', name: 'Семинарская комната', type: 'seminar' },
+            { number: '103', name: 'Лаборатория физики', type: 'lab' },
+            { number: '104', name: 'Компьютерный класс', type: 'computer' },
+            { number: '105', name: 'Кабинет преподавателей', type: 'office' },
+            { number: '201', name: 'Большая лекционная', type: 'lecture' },
+            { number: '202', name: 'Семинарская 202', type: 'seminar' },
+            { number: '203', name: 'Химическая лаборатория', type: 'lab' },
+            { number: '204', name: 'ИТ лаборатория', type: 'computer' },
+            { number: '301', name: 'Актовый зал', type: 'lecture' },
+            { number: '302', name: 'Конференц-зал', type: 'seminar' },
+            { number: '303', name: 'Научная лаборатория', type: 'lab' }
+        ];
+        
+        testClassrooms.forEach(classroom => {
+            const item = document.createElement('div');
+            item.className = 'classroom-item';
+            item.innerHTML = `
+                <div class="classroom-info">
+                    <div class="classroom-number">${classroom.number}</div>
+                    <div class="classroom-name">${classroom.name}</div>
+                    <div class="classroom-type ${classroom.type}">${classroom.type}</div>
+                </div>
+            `;
+            classroomsList.appendChild(item);
+        });
+    }
+});
+</script>
 </body>
 </html>
