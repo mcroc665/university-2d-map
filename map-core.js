@@ -373,22 +373,54 @@ class MapCore {
         console.log('Создание интерактивного плана...');
         
         const selectors = [
-            '[id$="class"]',
-            '[id^="Rectangle"]',
-            '[id*="WC"] path',
-            'path[id]',
-            'rect[id]'
+            '[id*="room"]',      // элементы с "room" в ID
+            '[id*="class"]',     // элементы с "class" в ID
+            '[id*="Rectangle"]', // прямоугольники
+            'path[id]',          // пути с ID
+            'rect[id]'           // прямоугольники с ID
         ];
 
         selectors.forEach(selector => {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
                 if (this.shouldSkipElement(element)) return;
-                this.makeElementInteractive(element);
+                
+                // Пропускаем элементы, которые являются чистыми номерами (текст)
+                if (/^\d+$/.test(element.id)) {
+                    return;
+                }
+                
+                this.makePlanElementInteractive(element);
             });
         });
 
         console.log('План стал интерактивным');
+    }
+
+    makePlanElementInteractive(element) {
+        element.classList.add('plan-room');
+        element.style.cursor = 'pointer';
+        
+        if (!element.dataset.originalFill) {
+            element.dataset.originalFill = element.getAttribute('fill') || '#9CC7E5';
+        }
+
+        element.addEventListener('mouseenter', () => {
+            if (!element.classList.contains('room-highlighted')) {
+                element.style.filter = 'brightness(1.1)';
+            }
+        });
+
+        element.addEventListener('mouseleave', () => {
+            if (!element.classList.contains('room-highlighted')) {
+                element.style.filter = '';
+            }
+        });
+
+        element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handlePlanRoomClick(element);
+        });
     }
 
     shouldSkipElement(element) {
@@ -422,12 +454,14 @@ class MapCore {
         });
     }
 
-    handleRoomClick(roomElement) {
+    handlePlanRoomClick(roomElement) {
         const roomId = roomElement.id;
-        console.log('Кликнута комната:', roomId);
+        console.log('Кликнута комната на плане:', roomId);
         
         this.clearRoomHighlights();
         roomElement.classList.add('room-highlighted');
+        
+        // Находим соответствующую аудиторию в списке
         this.selectCorrespondingClassroom(roomId);
     }
 
@@ -466,8 +500,12 @@ class MapCore {
     }
 
     normalizeRoomId(roomId) {
+        if (roomId.endsWith('room')) {
+            return roomId.replace('room', '');
+        }
+
         if (roomId.endsWith('class')) {
-            return roomId.replace('class', '');
+        return roomId.replace('class', '');
         }
         
         if (roomId.includes('Rectangle')) {
@@ -503,51 +541,65 @@ class MapCore {
     }
 
     highlightRoomOnPlan(roomNumber) {
+        if (!this.planWindow.classList.contains('open')) return;
+        
         console.log('Подсветка комнаты на плане:', roomNumber);
         
         this.clearRoomHighlights();
         
+        // Ищем именно геометрические элементы (комнаты), а не текст
         let roomElement = null;
         
-        const possibleIds = [
+        // Сначала ищем по точным ID комнат
+        const exactIds = [
+            `${roomNumber}room`,
             `${roomNumber}class`,
             `Rectangle ${roomNumber}`,
-            `Rectangle${roomNumber}`,
-            roomNumber
+            `Rectangle${roomNumber}`
         ];
         
-        for (const possibleId of possibleIds) {
-            roomElement = document.getElementById(possibleId);
-            if (roomElement) break;
+        for (const id of exactIds) {
+            roomElement = document.getElementById(id);
+            if (roomElement) {
+                console.log('Найдена комната по точному ID:', id);
+                break;
+            }
         }
         
+        // Если не нашли, ищем среди всех интерактивных элементов плана
         if (!roomElement) {
-            const allElements = document.querySelectorAll('.building-path');
-            allElements.forEach(el => {
-                if (el.id.includes(roomNumber)) {
-                    roomElement = el;
+            const allPlanRooms = document.querySelectorAll('.plan-room');
+            for (const element of allPlanRooms) {
+                // Проверяем, содержит ли ID номер комнаты и это не чистый номер
+                if (element.id.includes(roomNumber) && !/^\d+$/.test(element.id)) {
+                    roomElement = element;
+                    console.log('Найдена комната по частичному совпадению:', element.id);
+                    break;
                 }
+            }
+        }
+    
+    if (roomElement) {
+        roomElement.classList.add('room-highlighted');
+        
+        // Прокручиваем к подсвеченной комнате
+        const container = document.querySelector('.plan-svg-container');
+        if (container) {
+            const rect = roomElement.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            container.scrollTo({
+                left: rect.left - containerRect.left + container.scrollLeft - 100,
+                top: rect.top - containerRect.top + container.scrollTop - 100,
+                behavior: 'smooth'
             });
         }
         
-        if (roomElement) {
-            roomElement.classList.add('room-highlighted');
-            
-            const container = document.querySelector('.plan-svg-container');
-            if (container) {
-                const rect = roomElement.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                
-                container.scrollTo({
-                    left: rect.left - containerRect.left + container.scrollLeft - 100,
-                    top: rect.top - containerRect.top + container.scrollTop - 100,
-                    behavior: 'smooth'
-                });
-            }
-        } else {
-            console.warn('Не найдена комната на плане:', roomNumber);
-        }
+        console.log('Комната успешно подсвечена:', roomElement.id);
+    } else {
+        console.warn('Не найдена геометрическая комната на плане для номера:', roomNumber);
     }
+}
 
     addPlanZoomControls() {
         const container = document.querySelector('.plan-svg-container');

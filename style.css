@@ -714,22 +714,88 @@ h1 {
 }
 
 /* Стили для подсветки на плане */
-.plan-room-highlighted rect {
+/* Стили для подсветки на плане */
+.room-highlighted {
     stroke: #FF0000 !important;
-    stroke-width: 6px !important;
-    filter: url(#glow) !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.7)) !important;
     animation: pulse 1.5s infinite alternate;
 }
 
 @keyframes pulse {
     from {
-        stroke-width: 4px;
+        stroke-width: 3px;
         opacity: 1;
     }
     to {
-        stroke-width: 8px;
+        stroke-width: 6px;
         opacity: 0.8;
     }
+}
+
+.plan-room {
+    transition: all 0.3s ease;
+}
+
+.plan-svg-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+#plan-svg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    background: white;
+}
+
+#plan-svg:active {
+    cursor: grabbing;
+}
+
+.plan-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.plan-controls button {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.plan-controls button:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.plan-controls button:active {
+    transform: scale(0.95);
+}
+
+/* Стили для подсветки на плане */
+.plan-room-highlighted rect {
+    stroke: #FF0000 !important;
+    stroke-width: 6px !important;
+    filter: url(#glow) !important;
 }
 
 .plan-svg-container {
