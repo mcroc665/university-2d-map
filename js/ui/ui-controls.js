@@ -267,24 +267,15 @@ class UIControls {
         });
 
         // Закрытие модального окна
-        if (this.mapCore.closeBtn) {
-            this.mapCore.closeBtn.addEventListener('click', () => {
-                this.mapCore.closeModal();
-            });
-        }
-
-        if (this.mapCore.modal) {
-            window.addEventListener('click', (e) => {
-                if (e.target === this.mapCore.modal) {
-                    this.mapCore.closeModal();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.mapCore.closeModal();
+       // Закрытие боковой панели
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (this.mapCore.planWindow && this.mapCore.planWindow.classList.contains('open')) {
+                this.mapCore.closePlan();
+            } else if (this.mapCore.sidebar && this.mapCore.sidebar.classList.contains('open')) {
+                this.mapCore.closeSidebar();
             }
-        });
-    }
+        }
+    });
+}
 }

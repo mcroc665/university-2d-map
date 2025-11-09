@@ -2,18 +2,18 @@ class MapCore {
     constructor() {
         this.sidebar = document.getElementById('sidebar');
         this.mainContent = document.getElementById('main-content');
-        this.planWindow = document.getElementById('plan-window'); // Вернул обратно
+        this.planWindow = document.getElementById('plan-window');
         this.buildingTitle = document.getElementById('building-title');
         this.buildingDescription = document.getElementById('building-description');
         this.floorButtons = document.getElementById('floor-buttons');
         this.classroomsList = document.getElementById('classrooms-list');
         this.classroomsCount = document.getElementById('classrooms-count');
-        this.planContent = document.getElementById('plan-content'); // Вернул обратно
-        this.planTitle = document.getElementById('plan-title'); // Вернул обратно
+        this.planContent = document.getElementById('plan-content');
+        this.planTitle = document.getElementById('plan-title');
         
         this.closeBtn = document.getElementById('sidebar-close');
-        this.planCloseBtn = document.getElementById('plan-close'); // Вернул обратно
-        this.showPlanBtn = document.getElementById('show-plan-btn'); // Вернул обратно
+        this.planCloseBtn = document.getElementById('plan-close');
+        this.showPlanBtn = document.getElementById('show-plan-btn');
         
         this.currentHighlighted = null;
         this.currentBuilding = null;
@@ -22,9 +22,9 @@ class MapCore {
         this.mapElement = null;
         this.svgContainer = null;
         
-        this.planZoomScale = 1;
-        this.minZoomScale = 0.3;
-        this.maxZoomScale = 3;
+        this.planManager = new PlanManager(this);
+        this.currentPlanConfig = null;
+        this.roomElementMap = new Map();
     }
 
     async init() {
@@ -40,7 +40,6 @@ class MapCore {
             this.closeSidebar();
         };
 
-        // Вернул обработчики для окна плана
         this.planCloseBtn.onclick = () => {
             this.closePlan();
         };
@@ -143,6 +142,16 @@ class MapCore {
         }
     }
 
+    showPlanError(message) {
+        this.planContent.innerHTML = `
+            <div class="plan-error">
+                <div class="error-icon">❌</div>
+                <p>${message}</p>
+                <small>Попробуйте перезагрузить страницу или обратитесь к администратору</small>
+            </div>
+        `;
+    }
+    
     addClassroomDetailsCloseHandler() {
         const closeButton = document.querySelector('.close-details');
         const detailsElement = document.getElementById('classroom-details');
@@ -261,7 +270,6 @@ class MapCore {
         this.openSidebar();
     }
 
-    // Вернул методы для работы с отдельным окном плана
     showPlan() {
         if (!this.currentFloor || !this.currentFloor.hasPlan) {
             alert('Для этого этажа нет плана');
@@ -277,17 +285,58 @@ class MapCore {
     closePlan() {
         this.planWindow.classList.remove('open');
         this.mainContent.classList.remove('plan-open');
+        // Сбрасываем состояние PlanManager при закрытии
+        if (this.planManager) {
+            this.planManager.removeZoomControls();
+        }
     }
 
     async loadPlanContent() {
+        if (!this.currentFloor || !this.currentBuilding) {
+            this.showPlanError('Не выбран этаж или здание');
+            return;
+        }
+        
+        const planConfig = DataManager.getPlanConfig(
+            this.currentBuilding, 
+            this.currentFloor.number
+        );
+        
+        if (!planConfig) {
+            this.showPlanError(`План для ${this.currentFloor.name} не настроен`);
+            return;
+        }
+
+        this.currentPlanConfig = planConfig;
+        
         try {
-            const response = await fetch(this.currentFloor.planUrl);
-            const svgText = await response.text();
+            // Показываем индикатор загрузки
+            this.planContent.innerHTML = `
+                <div class="plan-loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка плана...</p>
+                </div>
+            `;
             
+            const response = await fetch(planConfig.svgUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const svgText = await response.text();
+            this.renderPlan(svgText, planConfig);
+            
+        } catch (error) {
+            console.error('Ошибка загрузки плана:', error);
+            this.showPlanError('Не удалось загрузить план этажа');
+        }
+    }
+
+    renderPlan(svgText, planConfig) {
+        // Даем время для отображения индикатора загрузки
+        setTimeout(() => {
             this.planContent.innerHTML = `
                 <div class="plan-svg-container">
                     ${svgText}
-                    <div class="plan-zoom-controls">
+                    <div class="plan-controls">
                         <button class="zoom-in">+</button>
                         <button class="zoom-out">-</button>
                         <button class="reset-view">⟲</button>
@@ -295,18 +344,174 @@ class MapCore {
                 </div>
             `;
 
-            this.planTitle.textContent = `План ${this.currentFloor.name}`;
-            this.makePlanInteractive();
-            this.addPlanZoomControls();
+            this.planTitle.textContent = planConfig.display?.title || `План ${this.currentFloor.name}`;
+            
+            // Инициализируем план с конфигом
+            this.initializePlan(planConfig);
+            
+        }, 100);
+    }
 
-        } catch (error) {
-            console.error('Ошибка загрузки плана:', error);
-            this.planContent.innerHTML = `
-                <div class="plan-placeholder">
-                    <div class="plan-icon">❌</div>
-                    <p>Не удалось загрузить план этажа</p>
-                </div>
-            `;
+    initializePlan(planConfig) {
+        if (!this.planManager) {
+            console.error('PlanManager не инициализирован');
+            return;
+        }
+        
+        // Даем время DOM обновиться
+        setTimeout(() => {
+            // Инициализируем контролы зума
+            this.planManager.initZoomControls();
+            
+            // Затем настраиваем интерактивность
+            this.makePlanInteractive(planConfig);
+            
+            // Устанавливаем лимиты зума
+            this.planManager.setZoomLimits(
+                planConfig.zoom?.minScale || 0.3,
+                planConfig.zoom?.maxScale || 3
+            );
+            
+            // Сбрасываем вид
+            this.planManager.resetView();
+            
+            console.log('План инициализирован:', planConfig.display?.title);
+        }, 200);
+    }
+
+    makePlanInteractive(planConfig) {
+        const { selectors, skipElements, defaultFill } = planConfig.interactive;
+        
+        // Проверяем, что skipElements существует и является массивом
+        const safeSkipElements = Array.isArray(skipElements) ? skipElements : [];
+        
+        selectors.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                if (this.shouldSkipElement(element, safeSkipElements)) return;
+                this.makePlanElementInteractive(element, defaultFill);
+            });
+        });
+    }
+
+    shouldSkipElement(element, skipElements) {
+        if (!Array.isArray(skipElements)) {
+            console.warn('skipElements is not an array:', skipElements);
+            return false;
+        }
+        return skipElements.some(skipId => element.id.includes(skipId));
+    }
+
+    makePlanElementInteractive(element, defaultFill) {
+        element.classList.add('plan-room');
+        element.style.cursor = 'pointer';
+        
+        if (!element.dataset.originalFill) {
+            element.dataset.originalFill = element.getAttribute('fill') || defaultFill;
+        }
+
+        element.addEventListener('mouseenter', () => {
+            if (!element.classList.contains('room-highlighted')) {
+                element.style.filter = 'brightness(1.1)';
+            }
+        });
+
+        element.addEventListener('mouseleave', () => {
+            if (!element.classList.contains('room-highlighted')) {
+                element.style.filter = '';
+            }
+        });
+
+        element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handlePlanRoomClick(element);
+        });
+    }
+
+    handlePlanRoomClick(roomElement) {
+        const roomId = roomElement.id;
+        const roomNumber = DataManager.getRoomNumberByElementId(
+            this.currentBuilding,
+            this.currentFloor.number,
+            roomId
+        );
+
+        if (roomNumber) {
+            this.clearRoomHighlights();
+            roomElement.classList.add('room-highlighted');
+            this.selectCorrespondingClassroom(roomNumber);
+        } else {
+            console.log('Неизвестный элемент плана:', roomId);
+        }
+    }
+
+    clearRoomHighlights() {
+        document.querySelectorAll('.room-highlighted').forEach(room => {
+            room.classList.remove('room-highlighted');
+            room.style.filter = '';
+        });
+    }
+
+    selectCorrespondingClassroom(roomNumber) {
+        const classroomItems = this.classroomsList.querySelectorAll('.classroom-item');
+        let found = false;
+        
+        classroomItems.forEach(item => {
+            const roomNumberElement = item.querySelector('.classroom-number');
+            if (roomNumberElement) {
+                const itemRoomNumber = roomNumberElement.textContent.trim();
+                if (itemRoomNumber === roomNumber) {
+                    this.selectClassroomFromList(item);
+                    found = true;
+                    return;
+                }
+            }
+        });
+
+        if (!found) {
+            console.log('Аудитория не найдена в списке:', roomNumber);
+            document.querySelectorAll('.classroom-item').forEach(item => {
+                item.style.background = '';
+            });
+        }
+    }
+
+    selectClassroomFromList(classroomElement) {
+        document.querySelectorAll('.classroom-item').forEach(item => {
+            item.style.background = '';
+            item.classList.remove('selected');
+        });
+        
+        classroomElement.style.background = '#e3f2fd';
+        classroomElement.classList.add('selected');
+        classroomElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        const roomNumber = classroomElement.querySelector('.classroom-number')?.textContent;
+        
+        if (roomNumber && this.currentBuilding) {
+            const classroom = DataManager.findClassroom(this.currentBuilding, roomNumber.trim());
+            if (classroom) {
+                this.showClassroomDetails(classroom);
+            }
+        }
+    }
+
+    highlightRoomOnPlan(roomNumber) {
+        if (!this.planWindow.classList.contains('open')) return;
+        
+        const elementId = DataManager.getRoomElementId(
+            this.currentBuilding,
+            this.currentFloor.number,
+            roomNumber
+        );
+
+        if (elementId) {
+            this.clearRoomHighlights();
+            const roomElement = document.getElementById(elementId);
+            if (roomElement) {
+                roomElement.classList.add('room-highlighted');
+                this.planManager.scrollToElement(roomElement);
+            }
         }
     }
 
@@ -367,282 +572,5 @@ class MapCore {
     selectFloor(floor) {
         this.currentFloor = floor;
         this.updateClassroomsList(floor);
-    }
-
-    makePlanInteractive() {
-        console.log('Создание интерактивного плана...');
-        
-        const selectors = [
-            '[id*="room"]',      // элементы с "room" в ID
-            '[id*="class"]',     // элементы с "class" в ID
-            '[id*="Rectangle"]', // прямоугольники
-            'path[id]',          // пути с ID
-            'rect[id]'           // прямоугольники с ID
-        ];
-
-        selectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                if (this.shouldSkipElement(element)) return;
-                
-                // Пропускаем элементы, которые являются чистыми номерами (текст)
-                if (/^\d+$/.test(element.id)) {
-                    return;
-                }
-                
-                this.makePlanElementInteractive(element);
-            });
-        });
-
-        console.log('План стал интерактивным');
-    }
-
-    makePlanElementInteractive(element) {
-        element.classList.add('plan-room');
-        element.style.cursor = 'pointer';
-        
-        if (!element.dataset.originalFill) {
-            element.dataset.originalFill = element.getAttribute('fill') || '#9CC7E5';
-        }
-
-        element.addEventListener('mouseenter', () => {
-            if (!element.classList.contains('room-highlighted')) {
-                element.style.filter = 'brightness(1.1)';
-            }
-        });
-
-        element.addEventListener('mouseleave', () => {
-            if (!element.classList.contains('room-highlighted')) {
-                element.style.filter = '';
-            }
-        });
-
-        element.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handlePlanRoomClick(element);
-        });
-    }
-
-    shouldSkipElement(element) {
-        const skipIds = ['plan-18corpus', 'Vector 147', 'WC'];
-        return skipIds.some(skipId => element.id.includes(skipId));
-    }
-
-    makeElementInteractive(element) {
-        element.classList.add('building-path');
-        element.style.cursor = 'pointer';
-        
-        if (!element.dataset.originalFill) {
-            element.dataset.originalFill = element.getAttribute('fill') || '#9CC7E5';
-        }
-
-        element.addEventListener('mouseenter', () => {
-            if (!element.classList.contains('room-highlighted')) {
-                element.style.filter = 'brightness(1.1)';
-            }
-        });
-
-        element.addEventListener('mouseleave', () => {
-            if (!element.classList.contains('room-highlighted')) {
-                element.style.filter = '';
-            }
-        });
-
-        element.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handleRoomClick(element);
-        });
-    }
-
-    handlePlanRoomClick(roomElement) {
-        const roomId = roomElement.id;
-        console.log('Кликнута комната на плане:', roomId);
-        
-        this.clearRoomHighlights();
-        roomElement.classList.add('room-highlighted');
-        
-        // Находим соответствующую аудиторию в списке
-        this.selectCorrespondingClassroom(roomId);
-    }
-
-    clearRoomHighlights() {
-        document.querySelectorAll('.room-highlighted').forEach(room => {
-            room.classList.remove('room-highlighted');
-            room.style.filter = '';
-        });
-    }
-
-    selectCorrespondingClassroom(roomId) {
-        const normalizedRoomId = this.normalizeRoomId(roomId);
-        console.log('Ищем аудиторию:', normalizedRoomId);
-        
-        const classroomItems = this.classroomsList.querySelectorAll('.classroom-item');
-        let found = false;
-        
-        classroomItems.forEach(item => {
-            const roomNumberElement = item.querySelector('.classroom-number');
-            if (roomNumberElement) {
-                const itemRoomNumber = roomNumberElement.textContent.trim();
-                if (itemRoomNumber === normalizedRoomId) {
-                    this.selectClassroomFromList(item);
-                    found = true;
-                    return;
-                }
-            }
-        });
-
-        if (!found) {
-            console.log('Аудитория не найдена в списке:', normalizedRoomId);
-            document.querySelectorAll('.classroom-item').forEach(item => {
-                item.style.background = '';
-            });
-        }
-    }
-
-    normalizeRoomId(roomId) {
-        if (roomId.endsWith('room')) {
-            return roomId.replace('room', '');
-        }
-
-        if (roomId.endsWith('class')) {
-        return roomId.replace('class', '');
-        }
-        
-        if (roomId.includes('Rectangle')) {
-            const match = roomId.match(/\d+/);
-            return match ? match[0] : roomId;
-        }
-        
-        if (roomId.includes('WC')) {
-            return roomId.replace('WC', 'Туалет');
-        }
-        
-        return roomId;
-    }
-
-    selectClassroomFromList(classroomElement) {
-        document.querySelectorAll('.classroom-item').forEach(item => {
-            item.style.background = '';
-            item.classList.remove('selected');
-        });
-        
-        classroomElement.style.background = '#e3f2fd';
-        classroomElement.classList.add('selected');
-        classroomElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        const roomNumber = classroomElement.querySelector('.classroom-number')?.textContent;
-        
-        if (roomNumber && this.currentBuilding) {
-            const classroom = DataManager.findClassroom(this.currentBuilding, roomNumber.trim());
-            if (classroom) {
-                this.showClassroomDetails(classroom);
-            }
-        }
-    }
-
-    highlightRoomOnPlan(roomNumber) {
-        if (!this.planWindow.classList.contains('open')) return;
-        
-        console.log('Подсветка комнаты на плане:', roomNumber);
-        
-        this.clearRoomHighlights();
-        
-        // Ищем именно геометрические элементы (комнаты), а не текст
-        let roomElement = null;
-        
-        // Сначала ищем по точным ID комнат
-        const exactIds = [
-            `${roomNumber}room`,
-            `${roomNumber}class`,
-            `Rectangle ${roomNumber}`,
-            `Rectangle${roomNumber}`
-        ];
-        
-        for (const id of exactIds) {
-            roomElement = document.getElementById(id);
-            if (roomElement) {
-                console.log('Найдена комната по точному ID:', id);
-                break;
-            }
-        }
-        
-        // Если не нашли, ищем среди всех интерактивных элементов плана
-        if (!roomElement) {
-            const allPlanRooms = document.querySelectorAll('.plan-room');
-            for (const element of allPlanRooms) {
-                // Проверяем, содержит ли ID номер комнаты и это не чистый номер
-                if (element.id.includes(roomNumber) && !/^\d+$/.test(element.id)) {
-                    roomElement = element;
-                    console.log('Найдена комната по частичному совпадению:', element.id);
-                    break;
-                }
-            }
-        }
-    
-    if (roomElement) {
-        roomElement.classList.add('room-highlighted');
-        
-        // Прокручиваем к подсвеченной комнате
-        const container = document.querySelector('.plan-svg-container');
-        if (container) {
-            const rect = roomElement.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            
-            container.scrollTo({
-                left: rect.left - containerRect.left + container.scrollLeft - 100,
-                top: rect.top - containerRect.top + container.scrollTop - 100,
-                behavior: 'smooth'
-            });
-        }
-        
-        console.log('Комната успешно подсвечена:', roomElement.id);
-    } else {
-        console.warn('Не найдена геометрическая комната на плане для номера:', roomNumber);
-    }
-}
-
-    addPlanZoomControls() {
-        const container = document.querySelector('.plan-svg-container');
-        const svgElement = container?.querySelector('svg');
-        
-        if (!svgElement) return;
-        
-        const zoomInBtn = container.querySelector('.zoom-in');
-        const zoomOutBtn = container.querySelector('.zoom-out');
-        const resetBtn = container.querySelector('.reset-view');
-        
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', () => {
-                if (this.planZoomScale < this.maxZoomScale) {
-                    this.planZoomScale += 0.2;
-                    this.applyZoom(svgElement);
-                }
-            });
-        }
-        
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', () => {
-                if (this.planZoomScale > this.minZoomScale) {
-                    this.planZoomScale -= 0.2;
-                    this.applyZoom(svgElement);
-                }
-            });
-        }
-        
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                this.planZoomScale = 1;
-                this.applyZoom(svgElement);
-                if (container) {
-                    container.scrollLeft = container.scrollWidth / 2 - container.clientWidth / 2;
-                    container.scrollTop = container.scrollHeight / 2 - container.clientHeight / 2;
-                }
-            });
-        }
-    }
-
-    applyZoom(svgElement) {
-        svgElement.style.transform = `scale(${this.planZoomScale})`;
-        svgElement.style.transformOrigin = 'center center';
     }
 }

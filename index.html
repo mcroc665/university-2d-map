@@ -12,8 +12,21 @@
     <div class="plan-header">
         <button class="plan-close" id="plan-close">&times;</button>
         <h3 id="plan-title">План этажа</h3>
+         <div class="plan-info" id="plan-info">
+            <span class="building-name" id="plan-building"></span>
+            <span class="floor-name" id="plan-floor"></span>
+        </div>
     </div>
     <div class="plan-content" id="plan-content">
+        <div class="plan-loading" id="plan-loading">
+            <div class="spinner"></div>
+            <p>Загрузка плана...</p>
+        </div>
+        <div class="plan-error" id="plan-error" style="display: none;">
+            <div class="error-icon">❌</div>
+            <p>Не удалось загрузить план этажа</p>
+            <button class="retry-btn" id="retry-plan">Попробовать снова</button>
+        </div>
          <div class="plan-svg-container">
             <svg id="plan-svg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
                 <!-- SVG содержимое плана будет добавляться динамически -->
@@ -100,14 +113,25 @@
         </div>
     </div>
 
+  <!-- Основные данные -->
     <script src="data/buildings-info.js"></script>
     <script src="data/classrooms-3Ablock.js"></script>
     <script src="data/classrooms-18block.js"></script>
+
+    <!-- Конфиги планов -->
+    <script src="data/plans/18block/floor-1.js"></script>
+    <script src="data/plans/18block/floor-2.js"></script>
+    <script src="data/plans/plans-config.js"></script>
+
+    <!-- Менеджер данных -->
     <script src="data/data-manager.js"></script>
-    <script src="map-core.js"></script>
-    <script src="ui-controls.js"></script>
-    <script src="search.js"></script>
-    <script src="app.js"></script>
-    <script src="plan.js"></script>
+
+    <!-- Основные скрипты -->
+    <script src="js/core/plan-manager.js"></script>
+    <script src="js/core/map-core.js"></script>
+    <script src="js/ui/ui-controls.js"></script>
+    <script src="js/ui/search.js"></script>
+    <script src="js/app.js"></script>
+
 </body>
 </html>
