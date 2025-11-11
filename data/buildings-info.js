@@ -180,10 +180,14 @@ const buildingsInfo = {
         title: 'Корпус 18',
         description: 'Учебный корпус №18. тут компьютеры и наша кафедрель.',
         floors: [
-            { number: 2, name: 'Второй этаж', hasPlan: true, planUrl: 'assets/plans/plan-18corpus.svg', planType: 'interactive'},
-            { number: 3, name: 'Третий этаж', hasPlan: false },
-            { number: 4, name: 'Четвертый этаж', hasPlan: false },
-            { number: 5, name: 'Пятый этаж', hasPlan: false }
+            { number: 1, name: 'Третий этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-1.svg', planType: 'interactive'},
+            { number: 2, name: 'Второй этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-2.svg', planType: 'interactive'},
+            { number: 3, name: 'Третий этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-3.svg', planType: 'interactive'},
+            { number: 4, name: 'Четвёртый этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-4.svg', planType: 'interactive'},
+            { number: 5, name: 'Пятый этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-5.svg', planType: 'interactive'},
+            { number: 6, name: 'Шестой этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-6.svg', planType: 'interactive'},
+            { number: 7, name: 'Седьмой этаж', hasPlan: true, planUrl: 'assets/plans/18block/plan-18corpus-7.svg', planType: 'interactive'}
+
         ]
     },
     'korolev': {
