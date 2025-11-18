@@ -473,6 +473,17 @@ h1 {
     filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.6));
 }
 
+/* Усиленные стили для вложенных элементов */
+.building.highlighted,
+.building.highlighted *,
+.building.highlighted path,
+.building.highlighted rect,
+.building.highlighted polygon {
+    fill: #ff6b6b !important;
+    stroke: #ff0000 !important;
+    stroke-width: 3px !important;
+}
+
 .room-highlighted {
     stroke: #ff0000 !important;
     stroke-width: 4px !important;

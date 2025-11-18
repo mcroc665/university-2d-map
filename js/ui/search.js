@@ -13,90 +13,131 @@ class SearchManager {
     }
 
     populateBuildingSelect() {
+        // Очищаем все опции кроме первой
         while (this.selectElement.children.length > 1) {
             this.selectElement.removeChild(this.selectElement.lastChild);
         }
 
-        // ИСПОЛЬЗУЕМ DataManager для получения списка зданий
+        // Получаем список зданий через DataManager
         const buildings = DataManager.getAllBuildings();
 
         buildings.forEach(buildingId => {
             const buildingInfo = DataManager.getBuildingInfo(buildingId);
-            const option = document.createElement('option');
-            option.value = buildingId;
-            option.textContent = buildingInfo.title;
-            this.selectElement.appendChild(option);
+            if (buildingInfo) {
+                const option = document.createElement('option');
+                option.value = buildingId;
+                option.textContent = buildingInfo.title;
+                this.selectElement.appendChild(option);
+            }
         });
     }
 
     addEventListeners() {
+        // Обработчик изменения выбора в выпадающем списке
         this.selectElement.addEventListener('change', (e) => {
             const buildingId = e.target.value;
+            console.log('Выбрано здание:', buildingId); // Для отладки
+
             if (buildingId) {
-                this.selectBuilding(buildingId);
+                this.selectBuildingFromDropdown(buildingId);
             } else {
-                // Если выбран пустой вариант, снимаем подсветку
-                if (this.mapCore.currentHighlighted) {
-                    this.mapCore.currentHighlighted.classList.remove('highlighted');
-                    this.mapCore.currentHighlighted = null;
-                }
+                // Если выбран пустой вариант
+                this.clearSelection();
             }
         });
 
-        // Синхронизируем выпадающий список при клике на здание
+        // Синхронизация выпадающего списка при клике на здание на карте
         document.addEventListener('buildingSelected', (e) => {
-            this.selectElement.value = e.detail.buildingId;
+            const buildingId = e.detail.buildingId;
+            console.log('Событие buildingSelected:', buildingId); // Для отладки
+            this.selectElement.value = buildingId;
+        });
+
+        // Дополнительная синхронизация при открытии боковой панели
+        document.addEventListener('sidebarOpened', (e) => {
+            const buildingId = e.detail.buildingId;
+            if (buildingId && this.selectElement.value !== buildingId) {
+                this.selectElement.value = buildingId;
+            }
         });
     }
 
-    selectBuilding(buildingId) {
+    selectBuildingFromDropdown(buildingId) {
+        console.log('selectBuildingFromDropdown вызван с:', buildingId); // Для отладки
+
+        // Находим элемент здания на карте
         const buildingElement = document.getElementById(buildingId);
         if (!buildingElement) {
-            console.warn(`Здание с ID "${buildingId}" не найдено на карте`);
+            console.error(`Элемент здания с ID "${buildingId}" не найден на карте`);
             return;
         }
 
         // Снимаем подсветку с предыдущего здания
-        if (this.mapCore.currentHighlighted) {
+        if (this.mapCore.currentHighlighted && this.mapCore.currentHighlighted !== buildingElement) {
             this.mapCore.currentHighlighted.classList.remove('highlighted');
         }
 
         // Подсвечиваем выбранное здание
         buildingElement.classList.add('highlighted');
         this.mapCore.currentHighlighted = buildingElement;
+        this.mapCore.currentBuilding = buildingId;
 
-        // Убрали центрирование и открытие модального окна
+        // Показываем информацию о здании и открываем боковую панель
+        this.mapCore.showBuildingInfo(buildingId);
+
+        // Принудительно открываем боковую панель
+        if (!this.mapCore.sidebar.classList.contains('open')) {
+            this.mapCore.openSidebar();
+        }
 
         // Создаем кастомное событие для синхронизации
-        const event = new CustomEvent('buildingSelected', {
+        const event = new CustomEvent('buildingSelectedFromSearch', {
             detail: { buildingId }
         });
         document.dispatchEvent(event);
+
+        console.log('Здание выбрано и подсвечено:', buildingId); // Для отладки
     }
 
-    // Метод для будущего поиска (оставляем на будущее)
-    search(query) {
+    clearSelection() {
+        // Снимаем подсветку
+        if (this.mapCore.currentHighlighted) {
+            this.mapCore.currentHighlighted.classList.remove('highlighted');
+            this.mapCore.currentHighlighted = null;
+        }
+
+        this.mapCore.currentBuilding = null;
+
+        // Закрываем боковую панель
+        if (this.mapCore.sidebar.classList.contains('open')) {
+            this.mapCore.closeSidebar();
+        }
+    }
+
+    // Метод для поиска по названию (может пригодиться в будущем)
+    searchByQuery(query) {
         query = query.toLowerCase().trim();
 
-        const foundBuilding = Object.keys(buildingData).find(buildingId => {
-            const building = buildingData[buildingId];
-            return building.title.toLowerCase().includes(query);
+        const buildings = DataManager.getAllBuildings();
+        const foundBuilding = buildings.find(buildingId => {
+            const buildingInfo = DataManager.getBuildingInfo(buildingId);
+            return buildingInfo.title.toLowerCase().includes(query);
         });
 
         if (foundBuilding) {
-            this.selectBuilding(foundBuilding);
-            return true;
-        }
-
-        const foundById = Object.keys(buildingData).find(buildingId => {
-            return buildingId.toLowerCase().includes(query);
-        });
-
-        if (foundById) {
-            this.selectBuilding(foundById);
+            this.selectBuildingFromDropdown(foundBuilding);
             return true;
         }
 
         return false;
+    }
+
+    // Метод для принудительного обновления выбора
+    refreshSelection() {
+        if (this.mapCore.currentBuilding) {
+            this.selectElement.value = this.mapCore.currentBuilding;
+        } else {
+            this.selectElement.value = '';
+        }
     }
 }

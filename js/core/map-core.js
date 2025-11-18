@@ -10,6 +10,9 @@ class MapCore {
         this.classroomsCount = document.getElementById('classrooms-count');
         this.planContent = document.getElementById('plan-content');
         this.planTitle = document.getElementById('plan-title');
+        this.planInfo = document.getElementById('plan-info');
+        this.planBuilding = document.getElementById('plan-building');
+        this.planFloor = document.getElementById('plan-floor');
         
         this.closeBtn = document.getElementById('sidebar-close');
         this.planCloseBtn = document.getElementById('plan-close');
@@ -25,6 +28,9 @@ class MapCore {
         this.planManager = new PlanManager(this);
         this.currentPlanConfig = null;
         this.roomElementMap = new Map();
+
+        // Добавляем флаг для отслеживания источника выбора
+        this.isFromSearch = false;
     }
 
     async init() {
@@ -32,6 +38,12 @@ class MapCore {
         this.mapElement = document.getElementById('map');
         this.makeBuildingsInteractive();
         this.setupEventListeners();
+        
+        // Добавляем обработчик событий от SearchManager
+        document.addEventListener('buildingSelectedFromSearch', (e) => {
+            this.handleBuildingSelectFromSearch(e.detail.buildingId);
+        });
+        
         return this;
     }
 
@@ -52,6 +64,7 @@ class MapCore {
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.building') &&
                 !e.target.closest('.sidebar') &&
+                !e.target.closest('.search-container') &&
                 this.currentHighlighted) {
 
                 this.clearHighlight();
@@ -62,6 +75,54 @@ class MapCore {
                 }
             }
         });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (this.planWindow.classList.contains('open')) {
+                    this.closePlan();
+                } else if (this.sidebar.classList.contains('open')) {
+                    this.closeSidebar();
+                }
+            }
+        });
+    }
+
+    // Новый метод для обработки выбора из поиска
+    handleBuildingSelectFromSearch(buildingId) {
+        console.log('Обработка выбора здания из поиска:', buildingId);
+        this.isFromSearch = true;
+        this.selectBuildingById(buildingId);
+        this.isFromSearch = false;
+    }
+
+    // Универсальный метод выбора здания по ID
+    selectBuildingById(buildingId) {
+        const buildingElement = document.getElementById(buildingId);
+        if (!buildingElement) {
+            console.error('Здание не найдено:', buildingId);
+            return;
+        }
+
+        // Снимаем предыдущее выделение
+        if (this.currentHighlighted && this.currentHighlighted !== buildingElement) {
+            this.currentHighlighted.classList.remove('highlighted');
+        }
+
+        // Подсвечиваем новое здание
+        buildingElement.classList.add('highlighted');
+        this.currentHighlighted = buildingElement;
+        this.currentBuilding = buildingId;
+
+        // Показываем информацию о здании
+        this.showBuildingInfo(buildingId);
+
+        // Открываем боковую панель (если она еще не открыта)
+        if (!this.sidebar.classList.contains('open')) {
+            this.openSidebar();
+        }
+
+        console.log('Здание успешно выбрано:', buildingId);
     }
 
     createClassroomItem(classroom) {
@@ -228,30 +289,28 @@ class MapCore {
                     element.appendChild(title);
                 }
 
-                element.addEventListener('click', () => {
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     this.handleBuildingClick(element);
                 });
+            } else {
+                console.warn('Элемент здания не найден:', buildingId);
             }
         });
     }
 
     handleBuildingClick(building) {
         const buildingId = building.id;
+        console.log('Клик по зданию:', buildingId);
 
-        if (this.currentHighlighted && this.currentHighlighted !== building) {
-            this.currentHighlighted.classList.remove('highlighted');
+        // Обновляем выпадающий список
+        const selectElement = document.getElementById('building-select');
+        if (selectElement) {
+            selectElement.value = buildingId;
         }
 
-        building.classList.add('highlighted');
-        this.currentHighlighted = building;
-        this.currentBuilding = buildingId;
-
-        const event = new CustomEvent('buildingSelected', {
-            detail: { buildingId }
-        });
-        document.dispatchEvent(event);
-
-        this.showBuildingInfo(buildingId);
+        // Выбираем здание
+        this.selectBuildingById(buildingId);
     }
 
     showBuildingInfo(buildingId) {
@@ -267,6 +326,7 @@ class MapCore {
             if (this.floorButtons) this.floorButtons.innerHTML = '';
         }
         
+        // Гарантированно открываем боковую панель
         this.openSidebar();
     }
 
@@ -278,6 +338,13 @@ class MapCore {
 
         this.planWindow.classList.add('open');
         this.mainContent.classList.add('plan-open');
+        
+        // Обновляем информацию в заголовке плана
+        if (this.planBuilding && this.planFloor) {
+            const buildingInfo = buildingsInfo[this.currentBuilding];
+            this.planBuilding.textContent = buildingInfo ? buildingInfo.title : this.currentBuilding;
+            this.planFloor.textContent = this.currentFloor.name;
+        }
         
         this.loadPlanContent();
     }
@@ -337,9 +404,9 @@ class MapCore {
                 <div class="plan-svg-container">
                     ${svgText}
                     <div class="plan-controls">
-                        <button class="zoom-in">+</button>
-                        <button class="zoom-out">-</button>
-                        <button class="reset-view">⟲</button>
+                        <button id="plan-zoom-in" title="Увеличить">+</button>
+                        <button id="plan-zoom-out" title="Уменьшить">-</button>
+                        <button id="plan-reset" title="Сбросить вид">⟲</button>
                     </div>
                 </div>
             `;
@@ -518,6 +585,7 @@ class MapCore {
     openSidebar() {
         this.sidebar.classList.add('open');
         this.mainContent.classList.add('sidebar-open');
+        console.log('Боковая панель открыта');
     }
 
     closeSidebar() {
@@ -542,6 +610,14 @@ class MapCore {
         if (classroomDetails) {
             classroomDetails.style.display = 'none';
         }
+
+        // Сбрасываем выпадающий список
+        const selectElement = document.getElementById('building-select');
+        if (selectElement) {
+            selectElement.value = '';
+        }
+
+        console.log('Боковая панель закрыта');
     }
 
     generateFloorButtons(floors) {
