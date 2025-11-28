@@ -207,5 +207,103 @@ const plansConfig = {
             minScale: 0.3,
             maxScale: 3
         }
+    },
+     // Корпус 15, этаж 1
+    '15block_1': {
+        svgUrl: 'assets/plans/15block/plan-15corpus-1.svg',
+        display: {
+            title: '15 корпус - 1 этаж'
+        },
+        roomMapping: {
+            '100room': '100',
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
+     // Корпус 15, этаж 2
+    '15block_2': {
+        svgUrl: 'assets/plans/15block/plan-15corpus-2.svg',
+        display: {
+            title: '15 корпус - 2 этаж'
+        },
+        roomMapping: {
+            '204room': '204',
+            '208room': '208',
+            '211room': '211',
+            '212room': '212',
+            '213room': '213'
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
+     // Корпус 15, этаж 3
+    '15block_3': {
+        svgUrl: 'assets/plans/15block/plan-15corpus-3.svg',
+        display: {
+            title: '15 корпус - 3 этаж'
+        },
+        roomMapping: {
+            '304room': '304',
+            '305room': '305',
+            '306room': '306',
+            '307room': '307',
+            '308room': '308',
+            '309room': '309',
+            '310room': '310',
+            '311room': '311',
+            '312room': '312',
+            '313room': '313',
+            '314room': '314'
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
+     // Корпус 15, этаж 4
+    '15block_4': {
+        svgUrl: 'assets/plans/15block/plan-15corpus-4.svg',
+        display: {
+            title: '15 корпус - 4 этаж'
+        },
+        roomMapping: {
+            '404room': '404',
+            '406room': '406',
+            '407room': '407',
+            '408room': '408',
+            '409room': '409',
+            '410room': '410',
+            '411room': '411',
+            '412room': '412',
+            '417room': '417'
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
     }
 };

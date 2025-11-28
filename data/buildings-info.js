@@ -158,12 +158,12 @@ const buildingsInfo = {
     },
     '15block': {
         title: 'Корпус 15',
-        description: 'Учебный корпус №15. Про пыапаывпвыапвывпывапывапвап',
+        description: 'Учебный корпус №15. Медиацентр',
         floors: [
-            { number: 1, name: 'Первый этаж', hasPlan: false },
-            { number: 2, name: 'Второй этаж', hasPlan: false },
-            { number: 3, name: 'Третий этаж', hasPlan: false },
-            { number: 4, name: 'Четвертый этаж', hasPlan: false }
+            { number: 1, name: 'Первый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-1.svg', planType: 'interactive'},
+            { number: 2, name: 'Второй этаж', hhasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-2.svg', planType: 'interactive'},
+            { number: 3, name: 'Третий этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-3.svg', planType: 'interactive'},
+            { number: 4, name: 'Четвертый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-3.svg', planType: 'interactive'}
         ]
     },
     '17block': {
@@ -190,39 +190,34 @@ const buildingsInfo = {
 
         ]
     },
-    'korolev': {
-        title: 'статуя',
-        description: 'серега космонавт',
-        floors: [
-            { number: 1, name: 'Первый этаж', hasPlan: false },
-            { number: 2, name: 'Второй этаж', hasPlan: false },
-            { number: 3, name: 'Третий этаж', hasPlan: false },
-            { number: 4, name: 'Четвертый этаж', hasPlan: false },
-            { number: 5, name: 'Пятый этаж', hasPlan: false }
-        ]
-    },
-    'rocket': {
-        title: 'карандаш',
-        description: 'как с луны свалился',
-        floors: [
-            { number: 1, name: 'Первый этаж', hasPlan: false },
-            { number: 2, name: 'Второй этаж', hasPlan: false },
-            { number: 3, name: 'Третий этаж', hasPlan: false },
-            { number: 4, name: 'Четвертый этаж', hasPlan: false },
-            { number: 5, name: 'Пятый этаж', hasPlan: false }
-        ]
-    },
-    'bottangarden': {
-        title: 'Ботанический сад',
-        description: 'чистилище никиы тосто-я-това',
-        floors: [
-            { number: 1, name: 'Первый этаж', hasPlan: false },
-            { number: 2, name: 'Второй этаж', hasPlan: false },
-            { number: 3, name: 'Третий этаж', hasPlan: false },
-            { number: 4, name: 'Четвертый этаж', hasPlan: false },
-            { number: 5, name: 'Пятый этаж', hasPlan: false }
-        ]
-    },
+    // 'korolev': {
+    //     title: 'статуя',
+    //     description: 'серега космонавт',
+    //     floors: [
+    //         { number: 1, name: 'Первый этаж', hasPlan: false },
+    //         { number: 2, name: 'Второй этаж', hasPlan: false },
+    //         { number: 3, name: 'Третий этаж', hasPlan: false },
+    //         { number: 4, name: 'Четвертый этаж', hasPlan: false },
+    //         { number: 5, name: 'Пятый этаж', hasPlan: false }
+    //     ]
+    // },
+    // 'rocket': {
+    //     title: 'карандаш',
+    //     description: 'как с луны свалился',
+    //     floors: [
+    //         { number: 1, name: 'Первый этаж', hasPlan: false },
+    //         { number: 2, name: 'Второй этаж', hasPlan: false },
+    //         { number: 3, name: 'Третий этаж', hasPlan: false },
+    //         { number: 4, name: 'Четвертый этаж', hasPlan: false },
+    //         { number: 5, name: 'Пятый этаж', hasPlan: false }
+    //     ]
+    // },
+    // 'bottangarden': {
+    //     title: 'Ботанический сад',
+    //     description: 'чистилище никиы тосто-я-това',
+    //     floors: [
+    //     ]
+    // },
     'parking1': {
         title: 'парковочная зона',
         description: 'так вот откуда ноги растут',
