@@ -163,7 +163,7 @@ const buildingsInfo = {
             { number: 1, name: 'Первый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-1.svg', planType: 'interactive'},
             { number: 2, name: 'Второй этаж', hhasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-2.svg', planType: 'interactive'},
             { number: 3, name: 'Третий этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-3.svg', planType: 'interactive'},
-            { number: 4, name: 'Четвертый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-3.svg', planType: 'interactive'}
+            { number: 4, name: 'Четвертый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-4.svg', planType: 'interactive'}
         ]
     },
     '17block': {

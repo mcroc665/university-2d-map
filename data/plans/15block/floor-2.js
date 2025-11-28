@@ -1,4 +1,4 @@
-// Конфиг для 18 корпуса, 2 этаж
+// Конфиг для 15 корпуса, 2 этаж
 const PLAN_15BLOCK_FLOOR_2 = {
     svgUrl: 'assets/plans/15block/plan-15corpus-2.svg',
     roomMapping: {

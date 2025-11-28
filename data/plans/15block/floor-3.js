@@ -1,6 +1,6 @@
 // Конфиг для 15 корпуса, 3 этаж
 const PLAN_15BLOCK_FLOOR_3 = {
-    svgUrl: 'assets/plans/15block/plan-18corpus-3.svg',
+    svgUrl: 'assets/plans/15block/plan-15corpus-3.svg',
     roomMapping: {
             '304room': '304',
             '305room': '305',

@@ -1,6 +1,6 @@
 // Конфиг для 15 корпуса, 3 этаж
 const PLAN_15BLOCK_FLOOR_4 = {
-    svgUrl: 'assets/plans/15block/plan-18corpus-4.svg',
+    svgUrl: 'assets/plans/15block/plan-15corpus-4.svg',
     roomMapping: {
             '404room': '404',
             '406room': '406',
