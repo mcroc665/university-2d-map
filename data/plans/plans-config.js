@@ -279,6 +279,146 @@ const plansConfig = {
             maxScale: 3
         }
     },
+    '3Ablock_3': {
+        svgUrl: 'assets/plans/3Ablock/plan-3Acorpus-3.svg',
+        display: {
+            title: '3A корпус - 3 этаж'
+        },
+        roomMapping: {
+            '324room': '324',
+            '322room': '322',
+            '320room': '320',
+            '318room': '318',
+            '316room': '316',
+            '319room': '319',
+            '317room': '317',
+            '315room': '315',
+            '308room': '308',
+            '310room': '310',
+            '312room': '312',
+            '307room': '307',
+            '309aroom': '309a',
+            '309room': '309',
+            '313room': '313',
+            '311room': '311',
+            '326aroom': '326a',
+            '326room': '326',
+            '328room': '328',
+            '314room': '314',
+            '310aroom': '310a',
+            '301-306room': '301-306',
+            'wc': 'wc',
+            'wc_2': 'wc_2',
+            'wc_3': 'wc_3',
+            'wc_4': 'wc_4'
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
+    '3Ablock_4': {
+        svgUrl: 'assets/plans/3Ablock/plan-3Acorpus-4.svg',
+        display: {
+            title: '3A корпус - 4 этаж'
+        },
+        roomMapping: {
+            '422room': '422',
+            '420room': '420',
+            '418room': '418',
+            '416room': '416',
+            '414room': '414',
+            '417room': '417',
+            '411room': '411',
+            '409room': '409',
+            '407room': '407',
+            '420aroom': '420a',
+            '424room': '424',
+            '415room': '415',
+            '406room': '406',
+            '410room': '410',
+            '401aroom': '401a',
+            'wc': 'wc',
+            'wc_2': 'wc_2',
+            'wc_3': 'wc_3',
+            'wc_4': 'wc_4',
+            '403room': '403',
+            '402room': '402',
+            '401room': '401',
+            '405room': '405',
+            '412room': '412',
+            '404rooom': '404', // опечатка в оригинале: "rooom"
+            '408room': '408',
+            '410aroom': '410a',
+            '401aroom_2': '401a_2', // дубликат
+            '401room_2': '401_2', // дубликат
+            '402room_2': '402_2', // дубликат
+            '404room': '404',
+            '406room_2': '406_2', // дубликат
+            '408room_2': '408_2', // дубликат
+            '410aroom_2': '410a_2', // дубликат
+            '403room_2': '403_2', // дубликат
+            '405room_2': '405_2', // дубликат
+            '412room_2': '412_2' // дубликат
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
+    '3Ablock_5': {
+        svgUrl: 'assets/plans/3Ablock/plan-3Acorpus-5.svg',
+        display: {
+            title: '3A корпус - 5 этаж'
+        },
+        roomMapping: {
+            '500room': '500',
+            '501room': '501',
+            '502room': '502',
+            '503room': '503',
+            '504aroom': '504a',
+            '504broom': '504b',
+            '505room': '505',
+            '506room': '506',
+            '508room': '508',
+            '509room': '509',
+            '510aroom': '510a',
+            '510broom': '510b',
+            '511room': '511',
+            '512room': '512',
+            '513room': '513',
+            '514aroom': '514a',
+            '514room': '514',
+            '515room': '515',
+            '516room': '516',
+            '517room': '517',
+            '520room': '520',
+            '522aroom': '522a',
+            'wc': 'wc',
+            'wc_2': 'wc_2',
+            'wc_3': 'wc_3',
+            'wc_4': 'wc_4'
+        },
+        interactive: {
+            selectors: ['[id*="room"]', 'rect[id]'],
+            skipElements: [],
+            defaultFill: '#9CC7E5'
+        },
+        zoom: {
+            minScale: 0.3,
+            maxScale: 3
+        }
+    },
      // Корпус 15, этаж 4
     '15block_4': {
         svgUrl: 'assets/plans/15block/plan-15corpus-4.svg',

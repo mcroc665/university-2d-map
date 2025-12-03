@@ -16,13 +16,13 @@ class PlanManager {
     }
 
     initZoomControls() {
-        this.container = document.querySelector('.plan-svg-container');
-        this.svgElement = this.container?.querySelector('svg');
-        
-        if (!this.svgElement) {
-            console.error('SVG элемент не найден в контейнере плана');
+        this.container = this.mapCore.planContent.querySelector('.plan-svg-container');
+        if (!this.container) {
+            console.error('Контейнер плана не найден');
             return;
         }
+
+        this.svgElement = this.container.querySelector('svg');
 
         // Удаляем старые обработчики
         this.removeZoomControls();
@@ -85,7 +85,7 @@ class PlanManager {
         this.translateX = 0;
         this.translateY = 0;
         this.applyZoom();
-        
+
         if (this.container) {
             this.container.scrollLeft = this.container.scrollWidth / 2 - this.container.clientWidth / 2;
             this.container.scrollTop = this.container.scrollHeight / 2 - this.container.clientHeight / 2;
@@ -97,7 +97,7 @@ class PlanManager {
 
         const rect = element.getBoundingClientRect();
         const containerRect = this.container.getBoundingClientRect();
-        
+
         this.container.scrollTo({
             left: rect.left - containerRect.left + this.container.scrollLeft - 100,
             top: rect.top - containerRect.top + this.container.scrollTop - 100,
@@ -128,23 +128,23 @@ class PlanManager {
         if (e.button !== 0) return;
         e.preventDefault();
         this.isDragging = true;
-        
+
         if (!this.svgElement) return;
-        
+
         const rect = this.svgElement.getBoundingClientRect();
         this.startX = e.clientX - this.translateX;
         this.startY = e.clientY - this.translateY;
-        
+
         this.svgElement.style.cursor = 'grabbing';
     }
 
     drag(e) {
         if (!this.isDragging) return;
         e.preventDefault();
-        
+
         this.translateX = e.clientX - this.startX;
         this.translateY = e.clientY - this.startY;
-        
+
         this.applyZoom();
     }
     async loadPlan(svgUrl) {

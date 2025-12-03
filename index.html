@@ -27,15 +27,14 @@
             <p>Не удалось загрузить план этажа</p>
             <button class="retry-btn" id="retry-plan">Попробовать снова</button>
         </div>
-         <div class="plan-svg-container">
+        <div class="plan-svg-container">
             <svg id="plan-svg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
-                <!-- SVG содержимое плана будет добавляться динамически -->
-                <g id="plan-content"></g>
+                <g id="plan-svg-content"></g>
             </svg>
             <div class="plan-controls">
-                <button id="plan-zoom-in" title="Увеличить">+</button>
-                <button id="plan-zoom-out" title="Уменьшить">-</button>
-                <button id="plan-reset" title="Сбросить вид">⟲</button>
+                <button id="plan-zoom-in" class="zoom-in" title="Увеличить">+</button>
+                <button id="plan-zoom-out" class="zoom-out" title="Уменьшить">-</button>
+                <button id="plan-reset" class="reset-view" title="Сбросить вид">⟲</button>
             </div>
         </div>
         <div class="plan-placeholder">
@@ -133,6 +132,9 @@
     <script src="data/plans/15block/floor-2.js"></script>
     <script src="data/plans/15block/floor-3.js"></script>
     <script src="data/plans/15block/floor-4.js"></script>
+    <script src="data/plans/3Ablock/floor-3.js"></script>
+    <script src="data/plans/3Ablock/floor-4.js"></script>
+    <script src="data/plans/3Ablock/floor-5.js"></script>
     <script src="data/plans/plans-config.js"></script>
 
     <!-- Менеджер данных -->

@@ -13,18 +13,18 @@ class MapCore {
         this.planInfo = document.getElementById('plan-info');
         this.planBuilding = document.getElementById('plan-building');
         this.planFloor = document.getElementById('plan-floor');
-        
+
         this.closeBtn = document.getElementById('sidebar-close');
         this.planCloseBtn = document.getElementById('plan-close');
         this.showPlanBtn = document.getElementById('show-plan-btn');
-        
+
         this.currentHighlighted = null;
         this.currentBuilding = null;
         this.currentFloor = null;
 
         this.mapElement = null;
         this.svgContainer = null;
-        
+
         this.planManager = new PlanManager(this);
         this.currentPlanConfig = null;
         this.roomElementMap = new Map();
@@ -38,12 +38,12 @@ class MapCore {
         this.mapElement = document.getElementById('map');
         this.makeBuildingsInteractive();
         this.setupEventListeners();
-        
+
         // Добавляем обработчик событий от SearchManager
         document.addEventListener('buildingSelectedFromSearch', (e) => {
             this.handleBuildingSelectFromSearch(e.detail.buildingId);
         });
-        
+
         return this;
     }
 
@@ -212,7 +212,7 @@ class MapCore {
             </div>
         `;
     }
-    
+
     addClassroomDetailsCloseHandler() {
         const closeButton = document.querySelector('.close-details');
         const detailsElement = document.getElementById('classroom-details');
@@ -269,7 +269,7 @@ class MapCore {
 
             this.svgContainer = mapContainer.querySelector('.svg-container');
             this.svgLoaded = true;
-            
+
         } catch (error) {
             console.error('Ошибка загрузки SVG:', error);
         }
@@ -327,7 +327,7 @@ class MapCore {
             this.buildingDescription.textContent = 'Информация о данном здании будет добавлена в ближайшее время.';
             if (this.floorButtons) this.floorButtons.innerHTML = '';
         }
-        
+
         // Гарантированно открываем боковую панель
         this.openSidebar();
     }
@@ -340,14 +340,14 @@ class MapCore {
 
         this.planWindow.classList.add('open');
         this.mainContent.classList.add('plan-open');
-        
+
         // Обновляем информацию в заголовке плана
         if (this.planBuilding && this.planFloor) {
             const buildingInfo = buildingsInfo[this.currentBuilding];
             this.planBuilding.textContent = buildingInfo ? buildingInfo.title : this.currentBuilding;
             this.planFloor.textContent = this.currentFloor.name;
         }
-        
+
         this.loadPlanContent();
     }
 
@@ -365,19 +365,19 @@ class MapCore {
             this.showPlanError('Не выбран этаж или здание');
             return;
         }
-        
+
         const planConfig = DataManager.getPlanConfig(
-            this.currentBuilding, 
+            this.currentBuilding,
             this.currentFloor.number
         );
-        
+
         if (!planConfig) {
             this.showPlanError(`План для ${this.currentFloor.name} не настроен`);
             return;
         }
 
         this.currentPlanConfig = planConfig;
-        
+
         try {
             // Показываем индикатор загрузки
             this.planContent.innerHTML = `
@@ -386,13 +386,13 @@ class MapCore {
                     <p>Загрузка плана...</p>
                 </div>
             `;
-            
+
             const response = await fetch(planConfig.svgUrl);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
+
             const svgText = await response.text();
             this.renderPlan(svgText, planConfig);
-            
+
         } catch (error) {
             console.error('Ошибка загрузки плана:', error);
             this.showPlanError('Не удалось загрузить план этажа');
@@ -406,18 +406,18 @@ class MapCore {
                 <div class="plan-svg-container">
                     ${svgText}
                     <div class="plan-controls">
-                        <button id="plan-zoom-in" title="Увеличить">+</button>
-                        <button id="plan-zoom-out" title="Уменьшить">-</button>
-                        <button id="plan-reset" title="Сбросить вид">⟲</button>
+                        <button class="zoom-in" title="Увеличить">+</button>
+                        <button class="zoom-out" title="Уменьшить">-</button>
+                        <button class="reset-view" title="Сбросить вид">⟲</button>
                     </div>
                 </div>
             `;
 
             this.planTitle.textContent = planConfig.display?.title || `План ${this.currentFloor.name}`;
-            
+
             // Инициализируем план с конфигом
             this.initializePlan(planConfig);
-            
+
         }, 100);
     }
 
@@ -426,34 +426,34 @@ class MapCore {
             console.error('PlanManager не инициализирован');
             return;
         }
-        
+
         // Даем время DOM обновиться
         setTimeout(() => {
             // Инициализируем контролы зума
             this.planManager.initZoomControls();
-            
+
             // Затем настраиваем интерактивность
             this.makePlanInteractive(planConfig);
-            
+
             // Устанавливаем лимиты зума
             this.planManager.setZoomLimits(
                 planConfig.zoom?.minScale || 0.3,
                 planConfig.zoom?.maxScale || 3
             );
-            
+
             // Сбрасываем вид
             this.planManager.resetView();
-            
+
             console.log('План инициализирован:', planConfig.display?.title);
         }, 200);
     }
 
     makePlanInteractive(planConfig) {
         const { selectors, skipElements, defaultFill } = planConfig.interactive;
-        
+
         // Проверяем, что skipElements существует и является массивом
         const safeSkipElements = Array.isArray(skipElements) ? skipElements : [];
-        
+
         selectors.forEach(selector => {
             const elements = document.querySelectorAll(selector);
             elements.forEach(element => {
@@ -474,7 +474,7 @@ class MapCore {
     makePlanElementInteractive(element, defaultFill) {
         element.classList.add('plan-room');
         element.style.cursor = 'pointer';
-        
+
         if (!element.dataset.originalFill) {
             element.dataset.originalFill = element.getAttribute('fill') || defaultFill;
         }
@@ -524,7 +524,7 @@ class MapCore {
     selectCorrespondingClassroom(roomNumber) {
         const classroomItems = this.classroomsList.querySelectorAll('.classroom-item');
         let found = false;
-        
+
         classroomItems.forEach(item => {
             const roomNumberElement = item.querySelector('.classroom-number');
             if (roomNumberElement) {
@@ -550,13 +550,13 @@ class MapCore {
             item.style.background = '';
             item.classList.remove('selected');
         });
-        
+
         classroomElement.style.background = '#e3f2fd';
         classroomElement.classList.add('selected');
         classroomElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
+
         const roomNumber = classroomElement.querySelector('.classroom-number')?.textContent;
-        
+
         if (roomNumber && this.currentBuilding) {
             const classroom = DataManager.findClassroom(this.currentBuilding, roomNumber.trim());
             if (classroom) {
@@ -567,7 +567,7 @@ class MapCore {
 
     highlightRoomOnPlan(roomNumber) {
         if (!this.planWindow.classList.contains('open')) return;
-        
+
         const elementId = DataManager.getRoomElementId(
             this.currentBuilding,
             this.currentFloor.number,
@@ -593,7 +593,7 @@ class MapCore {
     closeSidebar() {
         this.sidebar.classList.remove('open');
         this.mainContent.classList.remove('sidebar-open');
-        
+
         this.currentBuilding = null;
         this.currentFloor = null;
         this.clearRoomHighlights();
