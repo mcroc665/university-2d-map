@@ -132,6 +132,31 @@ class SearchManager {
         return false;
     }
 
+    searchClassrooms(query) {
+        query = query.toLowerCase().trim();
+        const results = [];
+
+        const buildings = DataManager.getAllBuildings();
+        buildings.forEach(buildingId => {
+            const buildingInfo = DataManager.getBuildingInfo(buildingId);
+            for (let floor in classroomsData[buildingId] || {}) {
+                classroomsData[buildingId][floor].forEach(classroom => {
+                    if (classroom.number.toLowerCase().includes(query) ||
+                        classroom.name.toLowerCase().includes(query)) {
+                        results.push({
+                            building: buildingInfo.title,
+                            buildingId,
+                            floor,
+                            ...classroom
+                        });
+                    }
+                });
+            }
+        });
+
+        return results;
+    }
+
     // Метод для принудительного обновления выбора
     refreshSelection() {
         if (this.mapCore.currentBuilding) {

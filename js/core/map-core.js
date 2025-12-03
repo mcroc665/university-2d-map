@@ -255,6 +255,7 @@ class MapCore {
     }
 
     async loadSVG() {
+        if (this.svgLoaded) return;
         try {
             const response = await fetch('assets/kampussouth.svg');
             const svgText = await response.text();
@@ -267,7 +268,8 @@ class MapCore {
             `;
 
             this.svgContainer = mapContainer.querySelector('.svg-container');
-
+            this.svgLoaded = true;
+            
         } catch (error) {
             console.error('Ошибка загрузки SVG:', error);
         }

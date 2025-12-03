@@ -12,6 +12,7 @@ class PlanManager {
         this.translateY = 0;
         this.svgElement = null;
         this.container = null;
+        this.planCache = new Map();
     }
 
     initZoomControls() {
@@ -146,6 +147,38 @@ class PlanManager {
         
         this.applyZoom();
     }
+    async loadPlan(svgUrl) {
+        if (this.planCache.has(svgUrl)) {
+            return this.planCache.get(svgUrl);
+        }
+
+        const response = await fetch(svgUrl);
+        const svgText = await response.text();
+        this.planCache.set(svgUrl, svgText);
+        return svgText;
+    }
+
+    addKeyboardNavigation() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.mapCore.planWindow.classList.contains('open')) return;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                    e.preventDefault();
+                    this.zoomIn();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    this.zoomOut();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.resetView();
+                    break;
+            }
+        });
+    }
+
 
     endDrag() {
         this.isDragging = false;

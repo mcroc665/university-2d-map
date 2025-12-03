@@ -146,6 +146,16 @@ const buildingsInfo = {
             { number: 4, name: 'Четвертый этаж', hasPlan: false }
         ]
     },
+    '13block': {
+        title: 'Корпус 11',
+        description: 'Учебный корпус №13. Про китайцев',
+        floors: [
+            { number: 1, name: 'Первый этаж', hasPlan: false },
+            { number: 2, name: 'Второй этаж', hasPlan: false },
+            { number: 3, name: 'Третий этаж', hasPlan: false },
+            { number: 4, name: 'Четвертый этаж', hasPlan: false }
+        ]
+    },
     '14block': {
         title: 'Корпус 14',
         description: 'Учебный корпус №14. Про пыавпывапывапвап',
@@ -161,7 +171,7 @@ const buildingsInfo = {
         description: 'Учебный корпус №15. Медиацентр',
         floors: [
             { number: 1, name: 'Первый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-1.svg', planType: 'interactive'},
-            { number: 2, name: 'Второй этаж', hhasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-2.svg', planType: 'interactive'},
+            { number: 2, name: 'Второй этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-2.svg', planType: 'interactive'},
             { number: 3, name: 'Третий этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-3.svg', planType: 'interactive'},
             { number: 4, name: 'Четвертый этаж', hasPlan: true, planUrl: 'assets/plans/15block/plan-15corpus-4.svg', planType: 'interactive'}
         ]
