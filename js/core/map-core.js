@@ -400,26 +400,69 @@ class MapCore {
     }
 
     renderPlan(svgText, planConfig) {
-        // Даем время для отображения индикатора загрузки
+        // Снимем обработчики со старого плана, чтобы ничего не висело
+        if (this.planManager && typeof this.planManager.removeZoomControls === 'function') {
+            this.planManager.removeZoomControls();
+        }
+
+        // Небольшая задержка — даёт браузеру применить изменения (обычно можно сократить)
         setTimeout(() => {
-            this.planContent.innerHTML = `
+            // Убедимся, что контейнер присутствует
+            if (!this.planContent) {
+                console.error('renderPlan: planContent отсутствует');
+                return;
+            }
+
+            // Парсим пришедший SVG
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgText, 'image/svg+xml');
+            const incomingSvg = doc.querySelector('svg') || doc.documentElement;
+
+            // Ищем целевой SVG в шаблоне страницы (он задан в index.html)
+            let targetSvg = this.planContent.querySelector('svg#plan-svg') || this.planContent.querySelector('svg');
+
+            // Если целевого SVG ещё нет — создаём базовый шаблон контейнера + controls (единоразно)
+            if (!targetSvg) {
+                this.planContent.innerHTML = `
                 <div class="plan-svg-container">
-                    ${svgText}
+                    <svg id="plan-svg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
+                        <g id="plan-svg-content"></g>
+                    </svg>
                     <div class="plan-controls">
-                        <button class="zoom-in" title="Увеличить">+</button>
-                        <button class="zoom-out" title="Уменьшить">-</button>
-                        <button class="reset-view" title="Сбросить вид">⟲</button>
+                        <button id="plan-zoom-in" class="zoom-in" title="Увеличить">+</button>
+                        <button id="plan-zoom-out" class="zoom-out" title="Уменьшить">-</button>
+                        <button id="plan-reset" class="reset-view" title="Сбросить вид">⟲</button>
                     </div>
                 </div>
             `;
+                targetSvg = this.planContent.querySelector('svg#plan-svg');
+            }
 
-            this.planTitle.textContent = planConfig.display?.title || `План ${this.currentFloor.name}`;
+            // Применим viewBox от приходящего SVG, если он задан
+            try {
+                const vb = incomingSvg.getAttribute('viewBox');
+                if (vb) targetSvg.setAttribute('viewBox', vb);
+            } catch (err) { /* ignore */ }
 
-            // Инициализируем план с конфигом
+            // Вставляем содержимое incomingSvg внутрь <g id="plan-svg-content"> целевого svg
+            const targetGroup = targetSvg.querySelector('#plan-svg-content') || targetSvg;
+            // очистим старое содержимое
+            while (targetGroup.firstChild) targetGroup.removeChild(targetGroup.firstChild);
+
+            // перенесём дочерние узлы
+            Array.from(incomingSvg.childNodes).forEach(node => {
+                const imported = document.importNode(node, true);
+                targetGroup.appendChild(imported);
+            });
+
+            // Обновим заголовок и проинициализируем план
+            this.planTitle.textContent = planConfig.display?.title || `План ${this.currentFloor?.name || ''}`;
+
+            // Вызываем инициализацию
             this.initializePlan(planConfig);
-
-        }, 100);
+        }, 40); // 40ms — достаточно; можно увеличить при необходимости
     }
+
 
     initializePlan(planConfig) {
         if (!this.planManager) {
@@ -427,41 +470,59 @@ class MapCore {
             return;
         }
 
-        // Даем время DOM обновиться
+        // Небольшая отложенная инициализация, но важен порядок:
+        // 1) назначаем интерактивность элементам (они уже во вставленном SVG)
+        // 2) инициализируем PlanManager (он найдет существующие кнопки/svg внутри planContent)
+        // 3) задаем лимиты и сброс
         setTimeout(() => {
-            // Инициализируем контролы зума
-            this.planManager.initZoomControls();
-
-            // Затем настраиваем интерактивность
+            // 1) интерактивность (ищем только внутри текущего плана)
             this.makePlanInteractive(planConfig);
 
-            // Устанавливаем лимиты зума
-            this.planManager.setZoomLimits(
-                planConfig.zoom?.minScale || 0.3,
-                planConfig.zoom?.maxScale || 3
-            );
+            // 2) инициализируем контролы зума
+            this.planManager.initZoomControls();
 
-            // Сбрасываем вид
-            this.planManager.resetView();
+            // 3) задаем лимиты и сбрасываем вид
+            if (typeof this.planManager.setZoomLimits === 'function') {
+                this.planManager.setZoomLimits(
+                    planConfig.zoom?.minScale ?? 0.3,
+                    planConfig.zoom?.maxScale ?? 3
+                );
+            }
+            if (typeof this.planManager.resetView === 'function') {
+                this.planManager.resetView();
+            }
 
             console.log('План инициализирован:', planConfig.display?.title);
-        }, 200);
+        }, 80);
     }
 
+
     makePlanInteractive(planConfig) {
-        const { selectors, skipElements, defaultFill } = planConfig.interactive;
+        if (!this.planContent) return;
+        const { selectors = [], skipElements = [], defaultFill } = planConfig.interactive || {};
+        const safeSkip = Array.isArray(skipElements) ? skipElements : [];
 
-        // Проверяем, что skipElements существует и является массивом
-        const safeSkipElements = Array.isArray(skipElements) ? skipElements : [];
-
+        const svg = this.planContent.querySelector('svg');
         selectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                if (this.shouldSkipElement(element, safeSkipElements)) return;
-                this.makePlanElementInteractive(element, defaultFill);
+            let elements = [];
+            if (svg) {
+                try {
+                    elements = Array.from(svg.querySelectorAll(selector));
+                } catch (err) {
+                    // если селектор не подходит для svg, попробуем в контейнере
+                    elements = Array.from(this.planContent.querySelectorAll(selector));
+                }
+            } else {
+                elements = Array.from(this.planContent.querySelectorAll(selector));
+            }
+
+            elements.forEach(el => {
+                if (this.shouldSkipElement(el, safeSkip)) return;
+                this.makePlanElementInteractive(el, defaultFill);
             });
         });
     }
+
 
     shouldSkipElement(element, skipElements) {
         if (!Array.isArray(skipElements)) {

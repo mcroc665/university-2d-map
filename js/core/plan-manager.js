@@ -16,37 +16,39 @@ class PlanManager {
     }
 
     initZoomControls() {
-        this.container = this.mapCore.planContent.querySelector('.plan-svg-container');
+        // ищем контейнер внутри planContent (а не глобально по document)
+        this.container = this.mapCore?.planContent?.querySelector('.plan-svg-container') || document.querySelector('.plan-svg-container');
         if (!this.container) {
-            console.error('Контейнер плана не найден');
+            console.error('PlanManager: .plan-svg-container не найден в planContent');
             return;
         }
 
         this.svgElement = this.container.querySelector('svg');
+        if (!this.svgElement) {
+            console.error('PlanManager: svg не найден в контейнере плана');
+            return;
+        }
 
-        // Удаляем старые обработчики
+        // снимем старые
         this.removeZoomControls();
 
-        const zoomInBtn = this.container.querySelector('.zoom-in');
-        const zoomOutBtn = this.container.querySelector('.zoom-out');
-        const resetBtn = this.container.querySelector('.reset-view');
+        // Поддержка и классов и id (гибкость)
+        const zoomInBtn = this.container.querySelector('.zoom-in') || this.container.querySelector('#plan-zoom-in');
+        const zoomOutBtn = this.container.querySelector('.zoom-out') || this.container.querySelector('#plan-zoom-out');
+        const resetBtn = this.container.querySelector('.reset-view') || this.container.querySelector('#plan-reset');
 
-        this.zoomInHandler = () => this.zoomIn();
-        this.zoomOutHandler = () => this.zoomOut();
-        this.resetHandler = () => this.resetView();
+        this.zoomInHandler = () => { console.log('zoom in clicked'); this.zoomIn(); };
+        this.zoomOutHandler = () => { console.log('zoom out clicked'); this.zoomOut(); };
+        this.resetHandler = () => { console.log('reset clicked'); this.resetView(); };
 
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', this.zoomInHandler);
-        }
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', this.zoomOutHandler);
-        }
-        if (resetBtn) {
-            resetBtn.addEventListener('click', this.resetHandler);
-        }
+        if (zoomInBtn) zoomInBtn.addEventListener('click', this.zoomInHandler);
+        if (zoomOutBtn) zoomOutBtn.addEventListener('click', this.zoomOutHandler);
+        if (resetBtn) resetBtn.addEventListener('click', this.resetHandler);
 
+        // drag
         this.initDragControls();
     }
+
 
     setZoomLimits(min, max) {
         this.minScale = min;
@@ -54,17 +56,19 @@ class PlanManager {
     }
 
     removeZoomControls() {
-        const container = document.querySelector('.plan-svg-container');
+        const container = this.container || (this.mapCore?.planContent?.querySelector('.plan-svg-container'));
         if (!container) return;
+        const zoomInBtn = container.querySelector('.zoom-in') || container.querySelector('#plan-zoom-in');
+        const zoomOutBtn = container.querySelector('.zoom-out') || container.querySelector('#plan-zoom-out');
+        const resetBtn = container.querySelector('.reset-view') || container.querySelector('#plan-reset');
 
-        const zoomInBtn = container.querySelector('.zoom-in');
-        const zoomOutBtn = container.querySelector('.zoom-out');
-        const resetBtn = container.querySelector('.reset-view');
+        if (zoomInBtn && this.zoomInHandler) zoomInBtn.removeEventListener('click', this.zoomInHandler);
+        if (zoomOutBtn && this.zoomOutHandler) zoomOutBtn.removeEventListener('click', this.zoomOutHandler);
+        if (resetBtn && this.resetHandler) resetBtn.removeEventListener('click', this.resetHandler);
 
-        zoomInBtn?.removeEventListener('click', this.zoomInHandler);
-        zoomOutBtn?.removeEventListener('click', this.zoomOutHandler);
-        resetBtn?.removeEventListener('click', this.resetHandler);
+        // pointer handlers teardown handled in initDragControls/remove equivalent
     }
+
 
     zoomIn() {
         if (this.currentScale < this.maxScale) {
